@@ -1,33 +1,40 @@
 import groovy.json.JsonOutput
 
-void call(String status, String pipelineName, int buildNumber, String buildUrl) {
+void call(String status, String pipelineName, int buildNumber, String buildUrl, List<String> prsMerged = []) {
     def webhookUrl = teamsWebhookUrl()
     def themeColor
     def activityTitle
 
-    def icon = teamsIcon(status)
-
     switch(status) {
         case "SUCCESS":
             themeColor = '007300'
-            activityTitle = "${icon} Pipeline ${status}!"
+            activityTitle = "Pipeline ${status}!"
             break
         case "FAILURE":
             themeColor = 'FF0000'
-            activityTitle = "${icon} Pipeline ${status}!"
+            activityTitle = "Pipeline ${status}!"
             break
         case "ABORTED":
             themeColor = '808080'
-            activityTitle = "${icon} Pipeline ${status}!"
+            activityTitle = "Pipeline ${status}!"
             break
         case "UNSTABLE":
             themeColor = 'FFA500'
-            activityTitle = "${icon} Pipeline ${status}!"
+            activityTitle = "Pipeline ${status}!"
             break
         default:
             themeColor = '000000'
-            activityTitle = "${icon} Unknown Pipeline Status"
+            activityTitle = "Unknown Pipeline Status"
             break
+    }
+
+    def prsSection = ""
+    if (prsMerged && prsMerged.size() > 0) {
+        def prsList = prsMerged.collect { "<li>${it}</li>" }.join('')
+        prsSection = """
+        <h3>Merged PRs:</h3>
+        <ul>${prsList}</ul>
+        """
     }
 
     def payload = [
@@ -40,7 +47,8 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl) 
             "facts": [
                 ["name": "Status", "value": status],
                 ["name": "Pipeline", "value": "<a href=\"$buildUrl\">${pipelineName} #${buildNumber}</a>"]
-            ]
+            ],
+            "text": prsSection
         ]]
     ]
 
