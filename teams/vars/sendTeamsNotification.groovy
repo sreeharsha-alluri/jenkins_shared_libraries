@@ -5,26 +5,28 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl) 
     def themeColor
     def activityTitle
 
+    def icon = teamsIcon(status)
+
     switch(status) {
         case "SUCCESS":
             themeColor = '007300'
-            activityTitle = "Pipeline ${status}!"
+            activityTitle = "${icon} Pipeline ${status}!"
             break
         case "FAILURE":
             themeColor = 'FF0000'
-            activityTitle = "Pipeline ${status}!"
+            activityTitle = "${icon} Pipeline ${status}!"
             break
         case "ABORTED":
             themeColor = '808080'
-            activityTitle = "Pipeline ${status}!"
+            activityTitle = "${icon} Pipeline ${status}!"
             break
         case "UNSTABLE":
             themeColor = 'FFA500'
-            activityTitle = "Pipeline ${status}!"
+            activityTitle = "${icon} Pipeline ${status}!"
             break
         default:
             themeColor = '000000'
-            activityTitle = "Unknown Pipeline Status"
+            activityTitle = "${icon} Unknown Pipeline Status"
             break
     }
 
