@@ -1,6 +1,6 @@
 import groovy.json.JsonOutput
 
-void call(String status, String pipelineName, int buildNumber, String buildUrl, String errorMessage = '') {
+void call(String status, String pipelineName, int buildNumber, String buildUrl) {
     def webhookUrl = teamsWebhookUrl()
     def themeColor
     def activityTitle
@@ -30,15 +30,6 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
             break
     }
 
-    def facts = [
-        ["name": "Status", "value": status],
-        ["name": "Pipeline", "value": "<a href=\"$buildUrl\">${pipelineName} #${buildNumber}</a>"]
-    ]
-    
-    if (errorMessage) {
-        facts << ["name": "Error Message", "value": errorMessage]
-    }
-
     def payload = [
         "@type": "MessageCard",
         "@context": "http://schema.org/extensions",
@@ -46,7 +37,10 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
         "themeColor": themeColor,
         "sections": [[
             "activityTitle": activityTitle,
-            "facts": facts
+            "facts": [
+                ["name": "Status", "value": status],
+                ["name": "Pipeline", "value": "<a href=\"$buildUrl\">${pipelineName} #${buildNumber}</a>"]
+            ]
         ]]
     ]
 
