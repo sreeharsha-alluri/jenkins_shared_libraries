@@ -69,21 +69,21 @@ String getNewMergedPRs(String baseBranch, String compareBranch) {
         acceptType: 'APPLICATION_JSON'
     )
 
-    // Convert response to string
     def responseContent = response.content
-
-    def compareResult = new groovy.json.JsonSlurper().parseText(responseContent)
+    def compareResult = new groovy.json.JsonSlurperClassic().parseText(responseContent)
     def commits = compareResult.commits
 
     def mergedPRs = commits.collect { commit ->
-        def prUrl = commit.html_url.replace('/commit/', '/pull/')
+        def prUrl = "https://api.github.com/repos/nikhilkamuni/Teams_notification/commits/${commit.sha}/pulls"
         def prResponse = httpRequest(
             url: prUrl,
             httpMode: 'GET',
-            acceptType: 'APPLICATION_JSON'
+            acceptType: 'APPLICATION_JSON',
+            customHeaders: [[name: 'Accept', value: 'application/vnd.github.groot-preview+json']]
         )
-        def pr = new groovy.json.JsonSlurper().parseText(prResponse.content)
-        return pr.merged_at ? "${pr.title} (#${pr.number}) by ${pr.user.login}" : null
+        def prs = new groovy.json.JsonSlurperClassic().parseText(prResponse.content)
+        def pr = prs.find { it.merged_at != null }
+        return pr ? "${pr.title} (#${pr.number}) by ${pr.user.login}" : null
     }.findAll { it != null }.join("\n")
 
     return mergedPRs ? mergedPRs : "No new PRs merged"
