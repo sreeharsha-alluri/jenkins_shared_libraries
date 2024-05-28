@@ -70,7 +70,7 @@ String getMergedPRs(String branch) {
     )
 
     def prList = new groovy.json.JsonSlurper().parseText(response)
-    def mergedPRs = prList.findAll { it.merged_at != null }.collect { pr -> pr.title }.join("\n")
+    def mergedPRs = prList.findAll { it.merged_at != null }.collect { pr -> "${pr.title} (#${pr.number}) by ${pr.user.login}" }.join("\n")
 
     return mergedPRs ? mergedPRs : "No PRs merged"
 }
