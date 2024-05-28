@@ -32,6 +32,8 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl) 
     def prsMerged = getMergedPRs()
     def prList = prsMerged.collect { "- ${formatLink(it.url, it.title)} by ${it.author}" }.join('\n')
 
+    println "Merged PRs: ${prList}" // Debug print statement
+
     def payload = [
         "@type": "MessageCard",
         "@context": "http://schema.org/extensions",
