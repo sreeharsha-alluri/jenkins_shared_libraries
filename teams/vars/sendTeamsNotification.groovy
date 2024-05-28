@@ -32,8 +32,6 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl) 
     def prsMerged = getMergedPRs()
     def prList = prsMerged.collect { "- ${formatLink(it.url, it.title)} by ${it.author}" }.join('\n')
 
-    println "Merged PRs: ${prList}" // Debug print statement
-
     def payload = [
         "@type": "MessageCard",
         "@context": "http://schema.org/extensions",
@@ -66,7 +64,7 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl) 
 def getMergedPRs() {
     def mergedPRs = []
     def prIDs = getMergedPRIDs()
-    
+
     prIDs.each { prID ->
         // Get the PR details from GitHub REST API as JSON
         def jsonResponse = sh(script: "curl -L --silent https://api.github.com/repos/nikhilkamuni/Teams_notification/pulls/${prID}", returnStdout: true)
