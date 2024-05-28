@@ -63,20 +63,38 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl) 
 
 def getMergedPRs() {
     def mergedPRs = []
+    def prIDs = getMergedPRIDs()
+    
+    prIDs.each { prID ->
+        // Get the PR details from GitHub REST API as JSON
+        def jsonResponse = sh(script: "curl -L --silent https://api.github.com/repos/nikhilkamuni/Teams_notification/pulls/${prID}", returnStdout: true)
+        def prDetails = readJSON text: jsonResponse
+
+        // Extract relevant information from the JSON response
+        def prTitle = prDetails.title
+        def prAuthor = prDetails.user.login
+        def prUrl = prDetails.html_url
+
+        // Add the PR details to the list
+        mergedPRs.add([title: prTitle, author: prAuthor, url: prUrl])
+    }
+
+    return mergedPRs
+}
+
+def getMergedPRIDs() {
     def gitCmd = "git log --merges --oneline nightly_success..nightly"
     def process = gitCmd.execute()
     process.waitFor()
 
+    def prIDs = []
+
     process.text.eachLine { line ->
-        def match = line =~ /Merge pull request #(\d+) from (.*)/
+        def match = line =~ /Merge pull request #(\d+)/
         if (match) {
-            def prNumber = match[0][1]
-            def author = match[0][2].trim()
-            def prUrl = "https://github.com/nikhilkamuni/Teams_notification.git/pull/${prNumber}"
-            def prTitle = sh(script: "git log --pretty=format:'%s' -n 1 $prNumber", returnStdout: true).trim()
-            mergedPRs.add([number: prNumber, title: prTitle, url: prUrl, author: author])
+            prIDs.add(match[0][1])
         }
     }
 
-    return mergedPRs
+    return prIDs
 }
