@@ -1,5 +1,3 @@
-import groovy.json.JsonOutput
-
 void call(String status, String pipelineName, int buildNumber, String buildUrl, String branch) {
     def webhookUrl = teamsWebhookUrl()
     def themeColor
