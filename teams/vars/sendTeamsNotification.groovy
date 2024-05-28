@@ -1,4 +1,37 @@
-void call(String status, String pipelineName, int buildNumber, String buildUrl, String branch) {
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurperClassic
+
+@NonCPS
+String getNewMergedPRs(String baseBranch, String compareBranch) {
+    def apiUrl = "https://api.github.com/repos/nikhilkamuni/Teams_notification/compare/${compareBranch}...${baseBranch}"
+    def response = httpRequest(
+        url: apiUrl,
+        httpMode: 'GET',
+        acceptType: 'APPLICATION_JSON'
+    )
+
+    def responseContent = response.content
+    def compareResult = new JsonSlurperClassic().parseText(responseContent)
+    def commits = compareResult.commits
+
+    def mergedPRs = commits.collect { commit ->
+        def prUrl = "https://api.github.com/repos/nikhilkamuni/Teams_notification/commits/${commit.sha}/pulls"
+        def prResponse = httpRequest(
+            url: prUrl,
+            httpMode: 'GET',
+            acceptType: 'APPLICATION_JSON',
+            customHeaders: [[name: 'Accept', value: 'application/vnd.github.groot-preview+json']]
+        )
+        def prs = new JsonSlurperClassic().parseText(prResponse.content)
+        def pr = prs.find { it.merged_at != null }
+        return pr ? "${pr.title} (#${pr.number}) by ${pr.user.login}" : null
+    }.findAll { it != null }.join("\n")
+
+    return mergedPRs ? mergedPRs : "No new PRs merged"
+}
+
+@NonCPS
+void sendTeamsNotification(String status, String pipelineName, int buildNumber, String buildUrl, String branch) {
     def webhookUrl = teamsWebhookUrl()
     def themeColor
     def activityTitle
@@ -59,30 +92,4 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
     }
 }
 
-String getNewMergedPRs(String baseBranch, String compareBranch) {
-    def apiUrl = "https://api.github.com/repos/nikhilkamuni/Teams_notification/compare/${compareBranch}...${baseBranch}"
-    def response = httpRequest(
-        url: apiUrl,
-        httpMode: 'GET',
-        acceptType: 'APPLICATION_JSON'
-    )
-
-    def responseContent = response.content
-    def compareResult = new groovy.json.JsonSlurperClassic().parseText(responseContent)
-    def commits = compareResult.commits
-
-    def mergedPRs = commits.collect { commit ->
-        def prUrl = "https://api.github.com/repos/nikhilkamuni/Teams_notification/commits/${commit.sha}/pulls"
-        def prResponse = httpRequest(
-            url: prUrl,
-            httpMode: 'GET',
-            acceptType: 'APPLICATION_JSON',
-            customHeaders: [[name: 'Accept', value: 'application/vnd.github.groot-preview+json']]
-        )
-        def prs = new groovy.json.JsonSlurperClassic().parseText(prResponse.content)
-        def pr = prs.find { it.merged_at != null }
-        return pr ? "${pr.title} (#${pr.number}) by ${pr.user.login}" : null
-    }.findAll { it != null }.join("\n")
-
-    return mergedPRs ? mergedPRs : "No new PRs merged"
-}
+return this
