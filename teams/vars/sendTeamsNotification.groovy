@@ -29,7 +29,10 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl) 
             break
     }
 
-    def prsMerged = getMergedPRs()
+    def prIDs = getMergedPRIDs()
+    println "Merged PR IDs: $prIDs" // Debug print statement
+
+    def prsMerged = getMergedPRs(prIDs)
     def prList = prsMerged.collect { "- ${formatLink(it.url, it.title)} by ${it.author}" }.join('\n')
 
     def payload = [
@@ -61,9 +64,25 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl) 
     }
 }
 
-def getMergedPRs() {
+def getMergedPRIDs() {
+    def gitCmd = "git log --merges --oneline nightly_success..nightly"
+    def process = gitCmd.execute()
+    process.waitFor()
+
+    def prIDs = []
+
+    process.text.eachLine { line ->
+        def match = line =~ /Merge pull request #(\d+)/
+        if (match) {
+            prIDs.add(match[0][1])
+        }
+    }
+
+    return prIDs
+}
+
+def getMergedPRs(prIDs) {
     def mergedPRs = []
-    def prIDs = getMergedPRIDs()
 
     prIDs.each { prID ->
         // Get the PR details from GitHub REST API as JSON
@@ -80,21 +99,4 @@ def getMergedPRs() {
     }
 
     return mergedPRs
-}
-
-def getMergedPRIDs() {
-    def gitCmd = "git log --merges --oneline nightly_success..nightly"
-    def process = gitCmd.execute()
-    process.waitFor()
-
-    def prIDs = []
-
-    process.text.eachLine { line ->
-        def match = line =~ /Merge pull request #(\d+)/
-        if (match) {
-            prIDs.add(match[0][1])
-        }
-    }
-
-    return prIDs
 }
