@@ -65,7 +65,7 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl) 
 }
 
 def getMergedPRIDs() {
-    def gitCmd = "git log --merges --oneline nightly_success..nightly"
+    def gitCmd = "git log --merges --oneline nightly..nightly_success"
     def process = gitCmd.execute()
     process.waitFor()
 
