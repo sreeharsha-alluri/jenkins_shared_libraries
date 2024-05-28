@@ -77,4 +77,3 @@ String getMergedPRs(String branch) {
 
     return mergedPRs ? mergedPRs : "No PRs merged"
 }
-
