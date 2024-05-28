@@ -4,6 +4,7 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl) 
     def webhookUrl = teamsWebhookUrl()
     def themeColor
     def activityTitle
+
     def icon = teamsIcon(status)
 
     switch(status) {
@@ -29,12 +30,6 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl) 
             break
     }
 
-    def prIDs = getMergedPRIDs()
-    println "Merged PR IDs: $prIDs" // Debug print statement
-
-    def prsMerged = getMergedPRs(prIDs)
-    def prList = prsMerged.collect { "- ${formatLink(it.url, it.title)} by ${it.author}" }.join('\n')
-
     def payload = [
         "@type": "MessageCard",
         "@context": "http://schema.org/extensions",
@@ -45,8 +40,7 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl) 
             "facts": [
                 ["name": "Status", "value": status],
                 ["name": "Pipeline", "value": "<a href=\"$buildUrl\">${pipelineName} #${buildNumber}</a>"]
-            ],
-            "text": "PRs Merged to Nightly Branch:\n${prList}"
+            ]
         ]]
     ]
 
@@ -62,41 +56,4 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl) 
     } catch (Exception e) {
         echo "Failed to send notification: ${e.message}"
     }
-}
-
-def getMergedPRIDs() {
-    def gitCmd = "git log --merges --oneline nightly..nightly_success"
-    def process = gitCmd.execute()
-    process.waitFor()
-
-    def prIDs = []
-
-    process.text.eachLine { line ->
-        def match = line =~ /Merge pull request #(\d+)/
-        if (match) {
-            prIDs.add(match[0][1])
-        }
-    }
-
-    return prIDs
-}
-
-def getMergedPRs(prIDs) {
-    def mergedPRs = []
-
-    prIDs.each { prID ->
-        // Get the PR details from GitHub REST API as JSON
-        def jsonResponse = sh(script: "curl -L --silent https://api.github.com/repos/nikhilkamuni/Teams_notification/pulls/${prID}", returnStdout: true)
-        def prDetails = readJSON text: jsonResponse
-
-        // Extract relevant information from the JSON response
-        def prTitle = prDetails.title
-        def prAuthor = prDetails.user.login
-        def prUrl = prDetails.html_url
-
-        // Add the PR details to the list
-        mergedPRs.add([title: prTitle, author: prAuthor, url: prUrl])
-    }
-
-    return mergedPRs
 }
