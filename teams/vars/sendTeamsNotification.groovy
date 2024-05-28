@@ -1,12 +1,12 @@
 import groovy.json.JsonOutput
 
-void call(String status, String pipelineName, int buildNumber, String buildUrl) {
+void call(String status, String pipelineName, int buildNumber, String buildUrl, String branch) {
     def webhookUrl = teamsWebhookUrl()
     def themeColor
     def activityTitle
 
     def icon = teamsIcon(status)
-
+    
     switch(status) {
         case "SUCCESS":
             themeColor = '007300'
@@ -30,6 +30,8 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl) 
             break
     }
 
+    def mergedPRs = getMergedPRs(branch)
+
     def payload = [
         "@type": "MessageCard",
         "@context": "http://schema.org/extensions",
@@ -39,7 +41,8 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl) 
             "activityTitle": activityTitle,
             "facts": [
                 ["name": "Status", "value": status],
-                ["name": "Pipeline", "value": "<a href=\"$buildUrl\">${pipelineName} #${buildNumber}</a>"]
+                ["name": "Pipeline", "value": "<a href=\"$buildUrl\">${pipelineName} #${buildNumber}</a>"],
+                ["name": "Merged PRs", "value": mergedPRs]
             ]
         ]]
     ]
@@ -56,4 +59,18 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl) 
     } catch (Exception e) {
         echo "Failed to send notification: ${e.message}"
     }
+}
+
+String getMergedPRs(String branch) {
+    def apiUrl = "https://api.github.com/repos/nikhilkamuni/Teams_notification/pulls?state=closed&base=${branch}&per_page=100"
+    def response = httpRequest(
+        url: apiUrl,
+        httpMode: 'GET',
+        acceptType: 'APPLICATION_JSON'
+    )
+
+    def prList = new groovy.json.JsonSlurper().parseText(response)
+    def mergedPRs = prList.findAll { it.merged_at != null }.collect { pr -> pr.title }.join("\n")
+
+    return mergedPRs ? mergedPRs : "No PRs merged"
 }
