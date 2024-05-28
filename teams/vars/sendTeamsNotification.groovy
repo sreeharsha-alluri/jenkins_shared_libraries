@@ -1,43 +1,11 @@
 import groovy.json.JsonOutput
-import groovy.json.JsonSlurperClassic
 
-@NonCPS
-String getNewMergedPRs(String baseBranch, String compareBranch) {
-    def apiUrl = "https://api.github.com/repos/nikhilkamuni/Teams_notification/compare/${compareBranch}...${baseBranch}"
-    def response = httpRequest(
-        url: apiUrl,
-        httpMode: 'GET',
-        acceptType: 'APPLICATION_JSON'
-    )
-
-    def responseContent = response.content
-    def compareResult = new JsonSlurperClassic().parseText(responseContent)
-    def commits = compareResult.commits
-
-    def mergedPRs = commits.collect { commit ->
-        def prUrl = "https://api.github.com/repos/nikhilkamuni/Teams_notification/commits/${commit.sha}/pulls"
-        def prResponse = httpRequest(
-            url: prUrl,
-            httpMode: 'GET',
-            acceptType: 'APPLICATION_JSON',
-            customHeaders: [[name: 'Accept', value: 'application/vnd.github.groot-preview+json']]
-        )
-        def prs = new JsonSlurperClassic().parseText(prResponse.content)
-        def pr = prs.find { it.merged_at != null }
-        return pr ? "${pr.title} (#${pr.number}) by ${pr.user.login}" : null
-    }.findAll { it != null }.join("\n")
-
-    return mergedPRs ? mergedPRs : "No new PRs merged"
-}
-
-@NonCPS
-void sendTeamsNotification(String status, String pipelineName, int buildNumber, String buildUrl, String branch) {
+void call(String status, String pipelineName, int buildNumber, String buildUrl) {
     def webhookUrl = teamsWebhookUrl()
     def themeColor
     def activityTitle
-
     def icon = teamsIcon(status)
-    
+
     switch(status) {
         case "SUCCESS":
             themeColor = '007300'
@@ -61,7 +29,8 @@ void sendTeamsNotification(String status, String pipelineName, int buildNumber, 
             break
     }
 
-    def mergedPRs = getNewMergedPRs('nightly', 'nightly_success')
+    def prsMerged = getMergedPRs()
+    def prList = prsMerged.collect { "- ${formatLink(it.url, it.title)} by ${it.author}" }.join('\n')
 
     def payload = [
         "@type": "MessageCard",
@@ -72,9 +41,9 @@ void sendTeamsNotification(String status, String pipelineName, int buildNumber, 
             "activityTitle": activityTitle,
             "facts": [
                 ["name": "Status", "value": status],
-                ["name": "Pipeline", "value": "<a href=\"$buildUrl\">${pipelineName} #${buildNumber}</a>"],
-                ["name": "New Merged PRs", "value": mergedPRs]
-            ]
+                ["name": "Pipeline", "value": "<a href=\"$buildUrl\">${pipelineName} #${buildNumber}</a>"]
+            ],
+            "text": "PRs Merged to Nightly Branch:\n${prList}"
         ]]
     ]
 
@@ -92,4 +61,22 @@ void sendTeamsNotification(String status, String pipelineName, int buildNumber, 
     }
 }
 
-return this
+def getMergedPRs() {
+    def mergedPRs = []
+    def gitCmd = "git log --merges --oneline nightly_success..nightly"
+    def process = gitCmd.execute()
+    process.waitFor()
+
+    process.text.eachLine { line ->
+        def match = line =~ /Merge pull request #(\d+) from (.*)/
+        if (match) {
+            def prNumber = match[0][1]
+            def author = match[0][2].trim()
+            def prUrl = "https://your-github-url/pull/${prNumber}"
+            def prTitle = sh(script: "git log --pretty=format:'%s' -n 1 $prNumber", returnStdout: true).trim()
+            mergedPRs.add([number: prNumber, title: prTitle, url: prUrl, author: author])
+        }
+    }
+
+    return mergedPRs
+}
