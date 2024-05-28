@@ -69,8 +69,12 @@ String getMergedPRs(String branch) {
         acceptType: 'APPLICATION_JSON'
     )
 
-    def prList = new groovy.json.JsonSlurper().parseText(response)
+    // Convert response to string
+    def responseContent = response.content
+
+    def prList = new groovy.json.JsonSlurper().parseText(responseContent)
     def mergedPRs = prList.findAll { it.merged_at != null }.collect { pr -> "${pr.title} (#${pr.number}) by ${pr.user.login}" }.join("\n")
 
     return mergedPRs ? mergedPRs : "No PRs merged"
 }
+
