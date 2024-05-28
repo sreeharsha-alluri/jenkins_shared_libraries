@@ -30,7 +30,7 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
             break
     }
 
-    def mergedPRs = getMergedPRs(branch)
+    def mergedPRs = getNewMergedPRs('nightly', 'nightly_success')
 
     def payload = [
         "@type": "MessageCard",
@@ -42,7 +42,7 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
             "facts": [
                 ["name": "Status", "value": status],
                 ["name": "Pipeline", "value": "<a href=\"$buildUrl\">${pipelineName} #${buildNumber}</a>"],
-                ["name": "Merged PRs", "value": mergedPRs]
+                ["name": "New Merged PRs", "value": mergedPRs]
             ]
         ]]
     ]
@@ -61,8 +61,8 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
     }
 }
 
-String getMergedPRs(String branch) {
-    def apiUrl = "https://api.github.com/repos/nikhilkamuni/Teams_notification/pulls?state=closed&base=${branch}&per_page=100"
+String getNewMergedPRs(String baseBranch, String compareBranch) {
+    def apiUrl = "https://api.github.com/repos/nikhilkamuni/Teams_notification/compare/${compareBranch}...${baseBranch}"
     def response = httpRequest(
         url: apiUrl,
         httpMode: 'GET',
@@ -72,8 +72,19 @@ String getMergedPRs(String branch) {
     // Convert response to string
     def responseContent = response.content
 
-    def prList = new groovy.json.JsonSlurper().parseText(responseContent)
-    def mergedPRs = prList.findAll { it.merged_at != null }.collect { pr -> "${pr.title} (#${pr.number}) by ${pr.user.login}" }.join("\n")
+    def compareResult = new groovy.json.JsonSlurper().parseText(responseContent)
+    def commits = compareResult.commits
 
-    return mergedPRs ? mergedPRs : "No PRs merged"
+    def mergedPRs = commits.collect { commit ->
+        def prUrl = commit.html_url.replace('/commit/', '/pull/')
+        def prResponse = httpRequest(
+            url: prUrl,
+            httpMode: 'GET',
+            acceptType: 'APPLICATION_JSON'
+        )
+        def pr = new groovy.json.JsonSlurper().parseText(prResponse.content)
+        return pr.merged_at ? "${pr.title} (#${pr.number}) by ${pr.user.login}" : null
+    }.findAll { it != null }.join("\n")
+
+    return mergedPRs ? mergedPRs : "No new PRs merged"
 }
