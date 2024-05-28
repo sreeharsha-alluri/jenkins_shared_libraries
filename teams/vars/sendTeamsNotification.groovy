@@ -72,7 +72,7 @@ def getMergedPRs() {
         if (match) {
             def prNumber = match[0][1]
             def author = match[0][2].trim()
-            def prUrl = "https://your-github-url/pull/${prNumber}"
+            def prUrl = "https://github.com/nikhilkamuni/Teams_notification.git/pull/${prNumber}"
             def prTitle = sh(script: "git log --pretty=format:'%s' -n 1 $prNumber", returnStdout: true).trim()
             mergedPRs.add([number: prNumber, title: prTitle, url: prUrl, author: author])
         }
