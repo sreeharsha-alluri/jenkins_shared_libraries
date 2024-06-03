@@ -42,7 +42,7 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
     def mentionEntities = mentionedUsers.collect { email ->
         [
             "type": "mention",
-            "text": "<at>${email}</at>",
+            "text": "<at>${email.split('@')[0]}</at>",
             "mentioned": [
                 "id": email,
                 "name": email.split('@')[0]
