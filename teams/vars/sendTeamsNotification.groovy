@@ -1,12 +1,12 @@
 import groovy.json.JsonOutput
-
-void call(String status, String pipelineName, int buildNumber, String buildUrl, String prDetails, List<String> mentionedUsers) {
+ 
+void call(String status, String pipelineName, int buildNumber, String buildUrl, String prDetails) {
     def webhookUrl = teamsWebhookUrl()
     def themeColor
     def activityTitle
-
+ 
     def icon = teamsIcon(status)
-
+ 
     switch(status) {
         case "SUCCESS":
             themeColor = '007300'
@@ -29,27 +29,16 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
             activityTitle = "${icon} Unknown Pipeline Status"
             break
     }
-
+ 
     def facts = [
         ["name": "Status", "value": status],
         ["name": "Pipeline", "value": "<a href=\"$buildUrl\">${pipelineName} #${buildNumber}</a>"]
     ]
-
+ 
     if (prDetails) {
         facts.add(["name": "Merged PRs", "value": prDetails.replace("\n", "<br>")])
     }
-
-    def mentionEntities = mentionedUsers.collect { email ->
-        [
-            "type": "mention",
-            "text": "<at>${email.split('@')[0]}</at>",
-            "mentioned": [
-                "id": email,
-                "name": email.split('@')[0]
-            ]
-        ]
-    }
-
+ 
     def payload = [
         "@type": "MessageCard",
         "@context": "http://schema.org/extensions",
@@ -57,16 +46,12 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
         "themeColor": themeColor,
         "sections": [[
             "activityTitle": activityTitle,
-            "facts": facts,
-            "text": "Hello " + mentionedUsers.collect { "<at>${it.split('@')[0]}</at>" }.join(', '),
-            "msteams": [
-                "entities": mentionEntities
-            ]
+            "facts": facts
         ]]
     ]
-
+ 
     def jsonPayload = JsonOutput.toJson(payload)
-
+ 
     try {
         httpRequest(
             contentType: 'APPLICATION_JSON',
