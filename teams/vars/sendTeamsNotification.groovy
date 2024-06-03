@@ -1,6 +1,6 @@
 import groovy.json.JsonOutput
 
-void call(String status, String pipelineName, int buildNumber, String buildUrl, String prDetails) {
+void call(String status, String pipelineName, int buildNumber, String buildUrl, String prDetails, List<String> mentionedUsers) {
     def webhookUrl = teamsWebhookUrl()
     def themeColor
     def activityTitle
@@ -39,6 +39,17 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
         facts.add(["name": "Merged PRs", "value": prDetails.replace("\n", "<br>")])
     }
 
+    def mentionEntities = mentionedUsers.collect { email ->
+        [
+            "type": "mention",
+            "text": "<at>${email}</at>",
+            "mentioned": [
+                "id": email,
+                "name": email.split('@')[0]
+            ]
+        ]
+    }
+
     def payload = [
         "@type": "MessageCard",
         "@context": "http://schema.org/extensions",
@@ -46,7 +57,11 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
         "themeColor": themeColor,
         "sections": [[
             "activityTitle": activityTitle,
-            "facts": facts
+            "facts": facts,
+            "text": "Hello " + mentionedUsers.collect { "<at>${it.split('@')[0]}</at>" }.join(', '),
+            "msteams": [
+                "entities": mentionEntities
+            ]
         ]]
     ]
 
