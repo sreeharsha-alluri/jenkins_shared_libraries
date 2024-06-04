@@ -39,10 +39,7 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
         facts.add(["name": "Merged PRs", "value": prDetails.replace("\n", "<br>")])
     }
 
-    // Prepare mention entities
-    def mentionedUsersEmails = mentionedUsers.collect { "${it}@amd.com" }
-    def mention = mentionedUsersEmails.collect { "<at>${it}</at>" }.join(' ')
-    def mentionEntities = createMentionEntities(mentionedUsersEmails)
+    def mentionEntities = createMentionEntities(mentionedUsers)
 
     def payload = [
         "@type": "MessageCard",
@@ -52,7 +49,6 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
         "sections": [[
             "activityTitle": activityTitle,
             "facts": facts,
-            "text": mention,
             "msteams": [
                 "entities": mentionEntities
             ]
