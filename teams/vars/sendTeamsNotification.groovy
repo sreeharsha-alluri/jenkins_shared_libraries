@@ -7,7 +7,7 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
 
     def icon = teamsIcon(status)
 
-    switch(status) {
+    switch (status) {
         case "SUCCESS":
             themeColor = '007300'
             activityTitle = "${icon} Pipeline ${status}!"
@@ -32,7 +32,7 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
 
     def facts = [
         ["name": "Status", "value": status],
-        ["name": "Pipeline", "value": "<a href=\"$buildUrl\">${pipelineName} #${buildNumber}</a>"]
+        ["name": "Pipeline", "value": formatLink(buildUrl, "${pipelineName} #${buildNumber}")]
     ]
 
     if (prDetails) {
@@ -76,15 +76,19 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
 }
 
 def createMentionEntities(List<String> mentionedUsers) {
-    def entities = mentionedUsers.collect { user ->
+    return mentionedUsers.collect { user ->
+        def email = "${user}@amd.com"
         [
             type: 'mention',
-            text: "<at>${user}</at>",
+            text: "<at>${email}</at>",
             mentioned: [
-                id: user,
+                id: email,
                 name: user
             ]
         ]
     }
-    return entities
+}
+
+def formatLink(String url, String text) {
+    return "<a href=\"$url\">$text</a>"
 }
