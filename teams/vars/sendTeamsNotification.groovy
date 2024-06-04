@@ -40,6 +40,7 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
     }
 
     def mentionEntities = createMentionEntities(mentionedUsers)
+    def mentionText = mentionedUsers.collect { "<at>${it}@amd.com</at>" }.join(' ')
 
     def payload = [
         "@type": "MessageCard",
@@ -48,6 +49,7 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
         "themeColor": themeColor,
         "sections": [[
             "activityTitle": activityTitle,
+            "text": mentionText,
             "facts": facts,
             "msteams": [
                 "entities": mentionEntities
