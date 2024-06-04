@@ -1,6 +1,6 @@
 import groovy.json.JsonOutput
 
-void call(String status, String pipelineName, int buildNumber, String buildUrl, String prDetails) {
+void call(String status, String pipelineName, int buildNumber, String buildUrl, String prDetails, List<String> mentionedUsers) {
     def webhookUrl = teamsWebhookUrl()
     def themeColor
     def activityTitle
@@ -39,6 +39,11 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
         facts.add(["name": "Merged PRs", "value": prDetails.replace("\n", "<br>")])
     }
 
+    // Prepare mention entities
+    def mentionedUsersEmails = mentionedUsers.collect { "${it}@amd.com" }
+    def mention = mentionedUsersEmails.collect { "<at>${it}</at>" }.join(' ')
+    def mentionEntities = createMentionEntities(mentionedUsersEmails)
+
     def payload = [
         "@type": "MessageCard",
         "@context": "http://schema.org/extensions",
@@ -47,7 +52,10 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
         "sections": [[
             "activityTitle": activityTitle,
             "facts": facts,
-            "markdown": true
+            "text": mention,
+            "msteams": [
+                "entities": mentionEntities
+            ]
         ]]
     ]
 
@@ -63,4 +71,18 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
     } catch (Exception e) {
         echo "Failed to send notification: ${e.message}"
     }
+}
+
+def createMentionEntities(List<String> mentionedUsers) {
+    def entities = mentionedUsers.collect { user ->
+        [
+            type: 'mention',
+            text: "<at>${user}</at>",
+            mentioned: [
+                id: user,
+                name: user
+            ]
+        ]
+    }
+    return entities
 }
