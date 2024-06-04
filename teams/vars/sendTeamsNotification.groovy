@@ -1,13 +1,13 @@
 import groovy.json.JsonOutput
 
-void call(String status, String pipelineName, int buildNumber, String buildUrl, String prDetails, List<String> mentionedUsers) {
+void call(String status, String pipelineName, int buildNumber, String buildUrl, String prDetails, List<String> mentionedUsers, List<String> displayNames) {
     def webhookUrl = teamsWebhookUrl()
     def themeColor
     def activityTitle
 
     def icon = teamsIcon(status)
 
-    switch (status) {
+    switch(status) {
         case "SUCCESS":
             themeColor = '007300'
             activityTitle = "${icon} Pipeline ${status}!"
@@ -32,15 +32,14 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
 
     def facts = [
         ["name": "Status", "value": status],
-        ["name": "Pipeline", "value": formatLink(buildUrl, "${pipelineName} #${buildNumber}")]
+        ["name": "Pipeline", "value": "<a href=\"$buildUrl\">${pipelineName} #${buildNumber}</a>"]
     ]
 
     if (prDetails) {
         facts.add(["name": "Merged PRs", "value": prDetails])
     }
 
-    def mentionEntities = createMentionEntities(mentionedUsers)
-    def mentionText = mentionedUsers.collect { "<at>${it}@amd.com</at>" }.join(' ')
+    def mentionEntities = createMentionEntities(mentionedUsers, displayNames)
 
     def payload = [
         "@type": "MessageCard",
@@ -49,7 +48,6 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
         "themeColor": themeColor,
         "sections": [[
             "activityTitle": activityTitle,
-            "text": mentionText,
             "facts": facts,
             "msteams": [
                 "entities": mentionEntities
@@ -71,20 +69,16 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
     }
 }
 
-def createMentionEntities(List<String> mentionedUsers) {
-    return mentionedUsers.collect { user ->
-        def email = "${user}@amd.com"
+def createMentionEntities(List<String> mentionedUsers, List<String> displayNames) {
+    def entities = mentionedUsers.collectWithIndex { user, index ->
         [
             type: 'mention',
-            text: "<at>${email}</at>",
+            text: "<at>${user}</at>",
             mentioned: [
-                id: email,
-                name: user
+                id: user,
+                name: displayNames[index]
             ]
         ]
     }
-}
-
-def formatLink(String url, String text) {
-    return "<a href=\"$url\">$text</a>"
+    return entities
 }
