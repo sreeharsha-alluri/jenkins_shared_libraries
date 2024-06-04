@@ -1,12 +1,12 @@
 import groovy.json.JsonOutput
-
-void call(String status, String pipelineName, int buildNumber, String buildUrl, String prDetails, List<String> mentionedUsers) {
+ 
+void call(String status, String pipelineName, int buildNumber, String buildUrl, String prDetails) {
     def webhookUrl = teamsWebhookUrl()
     def themeColor
     def activityTitle
-
+ 
     def icon = teamsIcon(status)
-
+ 
     switch(status) {
         case "SUCCESS":
             themeColor = '007300'
@@ -29,24 +29,16 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
             activityTitle = "${icon} Unknown Pipeline Status"
             break
     }
-
+ 
     def facts = [
         ["name": "Status", "value": status],
         ["name": "Pipeline", "value": "<a href=\"$buildUrl\">${pipelineName} #${buildNumber}</a>"]
     ]
-
+ 
     if (prDetails) {
-        def formattedPrDetails = prDetails.split('<br>').collect { line ->
-            def user = line.split(' by ')[1]
-            def mention = "<at>${user}</at>"
-            return line.replace(user, mention)
-        }.join('<br>')
-
-        facts.add(["name": "Merged PRs", "value": formattedPrDetails])
+        facts.add(["name": "Merged PRs", "value": prDetails.replace("\n", "<br>")])
     }
-
-    def mentionEntities = createMentionEntities(mentionedUsers)
-
+ 
     def payload = [
         "@type": "MessageCard",
         "@context": "http://schema.org/extensions",
@@ -54,15 +46,12 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
         "themeColor": themeColor,
         "sections": [[
             "activityTitle": activityTitle,
-            "facts": facts,
-            "msteams": [
-                "entities": mentionEntities
-            ]
+            "facts": facts
         ]]
     ]
-
+ 
     def jsonPayload = JsonOutput.toJson(payload)
-
+ 
     try {
         httpRequest(
             contentType: 'APPLICATION_JSON',
@@ -73,18 +62,4 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
     } catch (Exception e) {
         echo "Failed to send notification: ${e.message}"
     }
-}
-
-def createMentionEntities(List<String> mentionedUsers) {
-    def entities = mentionedUsers.collect { user ->
-        [
-            type: 'mention',
-            text: "<at>${user}</at>",
-            mentioned: [
-                id: user,
-                name: user
-            ]
-        ]
-    }
-    return entities
 }
