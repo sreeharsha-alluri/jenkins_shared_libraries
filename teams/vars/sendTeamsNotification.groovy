@@ -2,7 +2,7 @@
 
 import groovy.json.JsonOutput
 
-void call(String status, String pipelineName, int buildNumber, String buildUrl, String prDetails, List<String> prOwners) {
+void call(String status, String pipelineName, int buildNumber, String buildUrl, String prDetails) {
     def webhookUrl = teamsWebhookUrl()
     def themeColor
     def activityTitle
@@ -37,9 +37,7 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
     ]
 
     if (prDetails) {
-        // Add user mentions dynamically
-        def mention = prOwners.collect { "<at>${it}</at>" }.join(' ')
-        facts.add(["name": "Merged PRs", "value": "${mention} ${prDetails.replace("\n", "<br>")}", "markdown": true])
+        facts.add(["name": "Merged PRs", "value": prDetails.replace("\n", "<br>")])
     }
 
     def payload = [
