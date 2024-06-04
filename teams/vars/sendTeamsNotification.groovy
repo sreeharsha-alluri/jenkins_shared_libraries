@@ -1,6 +1,6 @@
 import groovy.json.JsonOutput
 
-void call(String status, String pipelineName, int buildNumber, String buildUrl, String prDetails, List<String> mentionedUsers, List<String> displayNames) {
+void call(String status, String pipelineName, int buildNumber, String buildUrl, String prDetails, List<String> mentionedUsers) {
     def webhookUrl = teamsWebhookUrl()
     def themeColor
     def activityTitle
@@ -36,10 +36,16 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
     ]
 
     if (prDetails) {
-        facts.add(["name": "Merged PRs", "value": prDetails])
+        def formattedPrDetails = prDetails.split('<br>').collect { line ->
+            def user = line.split(' by ')[1]
+            def mention = "<at>${user}</at>"
+            return line.replace(user, mention)
+        }.join('<br>')
+
+        facts.add(["name": "Merged PRs", "value": formattedPrDetails])
     }
 
-    def mentionEntities = createMentionEntities(mentionedUsers, displayNames)
+    def mentionEntities = createMentionEntities(mentionedUsers)
 
     def payload = [
         "@type": "MessageCard",
@@ -69,14 +75,14 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
     }
 }
 
-def createMentionEntities(List<String> mentionedUsers, List<String> displayNames) {
-    def entities = mentionedUsers.collectWithIndex { user, index ->
+def createMentionEntities(List<String> mentionedUsers) {
+    def entities = mentionedUsers.collect { user ->
         [
             type: 'mention',
             text: "<at>${user}</at>",
             mentioned: [
                 id: user,
-                name: displayNames[index]
+                name: user
             ]
         ]
     }
