@@ -34,28 +34,36 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
         ["name": "Pipeline", "value": "<a href=\"$buildUrl\">${pipelineName} #${buildNumber}</a>"]
     ]
 
-    def mentions = ''
+    def mentionText = ''
     def mentionEntities = []
+    def prDetailsFormatted = prDetails
 
     if (prDetails) {
         def prLines = prDetails.split('<br>')
+        def mentionedUsers = new HashSet<String>()
+
         prLines.each { line ->
             def matcher = line =~ /by ([^<]+)/
             if (matcher) {
                 def username = matcher[0][1].trim()
-                def email = "${username}@amd.com"
-                mentions += "<at>${username}</at> "
-                mentionEntities.add([
-                    type: 'mention',
-                    text: "<at>${username}</at>",
-                    mentioned: [
-                        id: email,
-                        name: username
-                    ]
-                ])
+                if (!mentionedUsers.contains(username)) {
+                    mentionedUsers.add(username)
+                    def email = "${username}@amd.com"
+                    mentionText += "<at>${username}</at> "
+                    mentionEntities.add([
+                        type: 'mention',
+                        text: "<at>${username}</at>",
+                        mentioned: [
+                            id: email,
+                            name: username
+                        ]
+                    ])
+                }
+                // Replace username with mention tag in PR details
+                prDetailsFormatted = prDetailsFormatted.replaceAll("by ${username}", "by <at>${username}</at>")
             }
         }
-        facts.add(["name": "Merged PRs", "value": prDetails])
+        facts.add(["name": "Merged PRs", "value": prDetailsFormatted])
     }
 
     def payload = [
@@ -66,7 +74,7 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
         "sections": [[
             "activityTitle": activityTitle,
             "facts": facts,
-            "text": mentions
+            "text": mentionText
         ]],
         "potentialAction": [
             [
