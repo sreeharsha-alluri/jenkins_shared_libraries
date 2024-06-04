@@ -1,5 +1,3 @@
-// teams/vars/sendTeamsNotification.groovy
-
 import groovy.json.JsonOutput
 
 void call(String status, String pipelineName, int buildNumber, String buildUrl, String prDetails) {
@@ -9,7 +7,7 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
 
     def icon = teamsIcon(status)
 
-    switch (status) {
+    switch(status) {
         case "SUCCESS":
             themeColor = '007300'
             activityTitle = "${icon} Pipeline ${status}!"
@@ -36,8 +34,28 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
         ["name": "Pipeline", "value": "<a href=\"$buildUrl\">${pipelineName} #${buildNumber}</a>"]
     ]
 
+    def mentions = ''
+    def mentionEntities = []
+
     if (prDetails) {
-        facts.add(["name": "Merged PRs", "value": prDetails.replace("\n", "<br>")])
+        def prLines = prDetails.split('<br>')
+        prLines.each { line ->
+            def matcher = line =~ /by ([^<]+)/
+            if (matcher) {
+                def username = matcher[0][1].trim()
+                def email = "${username}@amd.com"
+                mentions += "<at>${username}</at> "
+                mentionEntities.add([
+                    type: 'mention',
+                    text: "<at>${username}</at>",
+                    mentioned: [
+                        id: email,
+                        name: username
+                    ]
+                ])
+            }
+        }
+        facts.add(["name": "Merged PRs", "value": prDetails])
     }
 
     def payload = [
@@ -47,8 +65,33 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
         "themeColor": themeColor,
         "sections": [[
             "activityTitle": activityTitle,
-            "facts": facts
-        ]]
+            "facts": facts,
+            "text": mentions
+        ]],
+        "potentialAction": [
+            [
+                "@type": "ActionCard",
+                "name": "View Build",
+                "inputs": [
+                    [
+                        "@type": "TextInput",
+                        "id": "comment",
+                        "isMultiline": true,
+                        "title": "Comment"
+                    ]
+                ],
+                "actions": [
+                    [
+                        "@type": "HttpPOST",
+                        "name": "Send",
+                        "target": webhookUrl
+                    ]
+                ]
+            ]
+        ],
+        "msteams": [
+            "entities": mentionEntities
+        ]
     ]
 
     def jsonPayload = JsonOutput.toJson(payload)
