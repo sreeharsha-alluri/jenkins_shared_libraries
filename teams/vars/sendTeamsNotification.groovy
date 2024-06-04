@@ -1,13 +1,15 @@
+// teams/vars/sendTeamsNotification.groovy
+
 import groovy.json.JsonOutput
- 
-void call(String status, String pipelineName, int buildNumber, String buildUrl, String prDetails) {
+
+void call(String status, String pipelineName, int buildNumber, String buildUrl, String prDetails, List<String> prOwners) {
     def webhookUrl = teamsWebhookUrl()
     def themeColor
     def activityTitle
- 
+
     def icon = teamsIcon(status)
- 
-    switch(status) {
+
+    switch (status) {
         case "SUCCESS":
             themeColor = '007300'
             activityTitle = "${icon} Pipeline ${status}!"
@@ -29,15 +31,17 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
             activityTitle = "${icon} Unknown Pipeline Status"
             break
     }
- 
+
     def facts = [
         ["name": "Pipeline", "value": "<a href=\"$buildUrl\">${pipelineName} #${buildNumber}</a>"]
     ]
- 
+
     if (prDetails) {
-        facts.add(["name": "Merged PRs", "value": prDetails.replace("\n", "<br>")])
+        // Add user mentions dynamically
+        def mention = prOwners.collect { "<at>${it}</at>" }.join(' ')
+        facts.add(["name": "Merged PRs", "value": "${mention} ${prDetails.replace("\n", "<br>")}", "markdown": true])
     }
- 
+
     def payload = [
         "@type": "MessageCard",
         "@context": "http://schema.org/extensions",
@@ -48,9 +52,9 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
             "facts": facts
         ]]
     ]
- 
+
     def jsonPayload = JsonOutput.toJson(payload)
- 
+
     try {
         httpRequest(
             contentType: 'APPLICATION_JSON',
