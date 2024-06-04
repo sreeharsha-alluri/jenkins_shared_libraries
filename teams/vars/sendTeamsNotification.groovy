@@ -36,7 +36,13 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
     ]
 
     if (prDetails) {
-        facts.add(["name": "Merged PRs", "value": prDetails])
+        def formattedPrDetails = prDetails.split('<br>').collect { line ->
+            def user = line.split(' by ')[1]
+            def mention = "<at>${user}</at>"
+            return line.replace(user, mention)
+        }.join('<br>')
+
+        facts.add(["name": "Merged PRs", "value": formattedPrDetails])
     }
 
     def mentionEntities = createMentionEntities(mentionedUsers)
