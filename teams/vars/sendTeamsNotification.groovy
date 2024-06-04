@@ -31,7 +31,6 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
     }
  
     def facts = [
-        ["name": "Status", "value": status],
         ["name": "Pipeline", "value": "<a href=\"$buildUrl\">${pipelineName} #${buildNumber}</a>"]
     ]
  
