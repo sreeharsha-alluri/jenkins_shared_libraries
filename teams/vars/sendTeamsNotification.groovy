@@ -76,27 +76,6 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
             "facts": facts,
             "text": mentionText
         ]],
-        "potentialAction": [
-            [
-                "@type": "ActionCard",
-                "name": "View Build",
-                "inputs": [
-                    [
-                        "@type": "TextInput",
-                        "id": "comment",
-                        "isMultiline": true,
-                        "title": "Comment"
-                    ]
-                ],
-                "actions": [
-                    [
-                        "@type": "HttpPOST",
-                        "name": "Send",
-                        "target": webhookUrl
-                    ]
-                ]
-            ]
-        ],
         "msteams": [
             "entities": mentionEntities
         ]
