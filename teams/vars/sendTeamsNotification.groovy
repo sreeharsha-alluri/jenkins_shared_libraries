@@ -1,26 +1,26 @@
 import groovy.json.JsonOutput
 
-void call(String status, String pipelineName, int buildNumber, String buildUrl, String prDetails) {
-    def webhookUrl = teamsWebhookUrl()
-    def themeColor
-    def activityTitle
+void call(String status, String pipelineName, int buildNumber, String buildUrl) {
+    String webhookUrl = teamsWebhookUrl()
+    String themeColor
+    String activityTitle
 
-    def icon = teamsIcon(status)
+    String icon = teamsIcon(status)
 
-    switch(status) {
-        case "SUCCESS":
+    switch (status) {
+        case 'SUCCESS':
             themeColor = '007300'
             activityTitle = "${icon} Pipeline ${status}!"
             break
-        case "FAILURE":
+        case 'FAILURE':
             themeColor = 'FF0000'
             activityTitle = "${icon} Pipeline ${status}!"
             break
-        case "ABORTED":
+        case 'ABORTED':
             themeColor = '808080'
             activityTitle = "${icon} Pipeline ${status}!"
             break
-        case "UNSTABLE":
+        case 'UNSTABLE':
             themeColor = 'FFA500'
             activityTitle = "${icon} Pipeline ${status}!"
             break
@@ -30,26 +30,26 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
             break
     }
 
-    def facts = [
-        ["name": "Pipeline", "value": "<a href=\"$buildUrl\">${pipelineName} #${buildNumber}</a>"]
+    List<Map<String, String>> facts = [
+        ['name': 'Pipeline', 'value': "<a href=\"$buildUrl\">${pipelineName} #${buildNumber}</a>"]
     ]
 
-    if (prDetails) {
-        facts.add(["name": "Merged PRs", "value": prDetails.replace("\n", "<br>")])
-    }
+    // if (prDetails) {
+    //     facts.add(['name': 'Merged PRs', 'value': prDetails.replace("\n", "<br>")])
+    // }
 
-    def payload = [
-        "@type": "MessageCard",
-        "@context": "http://schema.org/extensions",
-        "summary": "Pipeline ${status}",
-        "themeColor": themeColor,
-        "sections": [[
-            "activityTitle": activityTitle,
-            "facts": facts
+    Map<String, Object> payload = [
+        '@type'      : 'MessageCard',
+        '@context'   : 'http://schema.org/extensions',
+        'summary'    : "Pipeline ${status}",
+        'themeColor' : themeColor,
+        'sections'   : [[
+            'activityTitle': activityTitle,
+            'facts'        : facts
         ]]
     ]
 
-    def jsonPayload = JsonOutput.toJson(payload)
+    String jsonPayload = JsonOutput.toJson(payload)
 
     try {
         httpRequest(
