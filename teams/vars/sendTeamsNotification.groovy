@@ -1,6 +1,6 @@
 import groovy.json.JsonOutput
 
-void call(String status, String pipelineName, int buildNumber, String buildUrl, String customMessage = "") {
+void call(String status, String pipelineName, int buildNumber, String buildUrl, String customMessage = '') {
     String webhookUrl = teamsWebhookUrl()
     String themeColor
     String activityTitle
