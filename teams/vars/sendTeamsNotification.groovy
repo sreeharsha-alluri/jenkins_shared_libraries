@@ -1,6 +1,6 @@
 import groovy.json.JsonOutput
 
-void call(String status, String pipelineName, int buildNumber, String buildUrl) {
+void call(String status, String pipelineName, int buildNumber, String buildUrl, String customMessage = "") {
     String webhookUrl = teamsWebhookUrl()
     String themeColor
     String activityTitle
@@ -10,33 +10,29 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl) 
     switch (status) {
         case 'SUCCESS':
             themeColor = '007300'
-            activityTitle = "${icon} Pipeline ${status}!"
+            activityTitle = "${icon} Pipeline ${status}! ${customMessage}"
             break
         case 'FAILURE':
             themeColor = 'FF0000'
-            activityTitle = "${icon} Pipeline ${status}!"
+            activityTitle = "${icon} Pipeline ${status}! ${customMessage}"
             break
         case 'ABORTED':
             themeColor = '808080'
-            activityTitle = "${icon} Pipeline ${status}!"
+            activityTitle = "${icon} Pipeline ${status}! ${customMessage}"
             break
         case 'UNSTABLE':
             themeColor = 'FFA500'
-            activityTitle = "${icon} Pipeline ${status}!"
+            activityTitle = "${icon} Pipeline ${status}! ${customMessage}"
             break
         default:
             themeColor = '000000'
-            activityTitle = "${icon} Unknown Pipeline Status"
+            activityTitle = "${icon} Unknown Pipeline Status ${customMessage}"
             break
     }
 
     List<Map<String, String>> facts = [
         ['name': 'Pipeline', 'value': "<a href=\"$buildUrl\">${pipelineName} #${buildNumber}</a>"]
     ]
-
-    // if (prDetails) {
-    //     facts.add(['name': 'Merged PRs', 'value': prDetails.replace("\n", "<br>")])
-    // }
 
     Map<String, Object> payload = [
         '@type'      : 'MessageCard',
