@@ -35,7 +35,7 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
     ]
 
     if (customMessage) {
-        facts.add(['name': '', 'value': customMessage])
+        facts.add(['name': '', 'value': "<b>${customMessage}</b>"])
     }
 
     Map<String, Object> payload = [
