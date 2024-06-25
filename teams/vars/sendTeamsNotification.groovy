@@ -8,7 +8,7 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
 
     if (onlyCustomMessage) {
         themeColor = '007300'  // Set a default color for the custom message
-        activityTitle = teamsBold(customMessage)  // Use custom message as the title
+        activityTitle = customMessage  // Use custom message as the title
     } else {
         switch (status) {
             case 'SUCCESS':
@@ -40,14 +40,14 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
         facts.add(['name': 'Pipeline', 'value': formatLink(buildUrl, "${pipelineName} #${buildNumber}")])
     }
 
-    if (customMessage) {
-        facts.add(['name': '', 'value': onlyCustomMessage ? customMessage : teamsBold(customMessage)])
+    if (customMessage && !onlyCustomMessage) {
+        facts.add(['name': '', 'value': teamsBold(customMessage)])
     }
 
     Map<String, Object> payload = [
         '@type'      : 'MessageCard',
         '@context'   : 'http://schema.org/extensions',
-        'summary'    : "Pipeline ${status}",
+        'summary'    : onlyCustomMessage ? customMessage : "Pipeline ${status}",
         'themeColor' : themeColor,
         'sections'   : [[
             'activityTitle': activityTitle,
