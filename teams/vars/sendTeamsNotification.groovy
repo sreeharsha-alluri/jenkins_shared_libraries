@@ -3,13 +3,10 @@ import groovy.json.JsonOutput
 void call(String status, String pipelineName, int buildNumber, String buildUrl, String customMessage = '', boolean onlyCustomMessage = false) {
     String webhookUrl = teamsWebhookUrl()
     String themeColor
-    String activityTitle
+    String activityTitle = ''
     String icon = teamsIcon(status)
 
-    if (onlyCustomMessage) {
-        themeColor = '007300'  // Set a default color for the custom message
-        activityTitle = teamsBold("Notification")
-    } else {
+    if (!onlyCustomMessage) {
         switch (status) {
             case 'SUCCESS':
                 themeColor = '007300'
@@ -32,6 +29,8 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
                 activityTitle = "${icon} Unknown Pipeline Status"
                 break
         }
+    } else {
+        themeColor = '007300'  // Set a default color for the custom message
     }
 
     List<Map<String, String>> facts = []
@@ -40,22 +39,23 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
         facts.add(['name': 'Pipeline', 'value': formatLink(buildUrl, "${pipelineName} #${buildNumber}")])
     }
 
-    if (customMessage && !onlyCustomMessage) {
-        facts.add(['name': '', 'value': teamsBold(customMessage)])
-    } else if (onlyCustomMessage) {
+    if (customMessage) {
         facts.add(['name': '', 'value': customMessage])
     }
 
     Map<String, Object> payload = [
         '@type'      : 'MessageCard',
         '@context'   : 'http://schema.org/extensions',
-        'summary'    : onlyCustomMessage ? "Notification" : "Pipeline ${status}",
+        'summary'    : onlyCustomMessage ? customMessage : "Pipeline ${status}",
         'themeColor' : themeColor,
-        'sections'   : [[
-            'activityTitle': activityTitle,
+        'sections'   : [
             'facts'        : facts
-        ]]
+        ]
     ]
+
+    if (!onlyCustomMessage) {
+        payload.sections[0]['activityTitle'] = activityTitle
+    }
 
     String jsonPayload = JsonOutput.toJson(payload)
 
