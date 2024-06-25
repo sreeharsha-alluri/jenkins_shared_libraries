@@ -7,7 +7,7 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
     String icon = teamsIcon(status)
  
     if (onlyCustomMessage) {
-        themeColor = '00FFFF'  // Set a default color for the custom message
+        themeColor = '008080'  // Set a default color for the custom message
         activityTitle = customMessage  // Use custom message as the title
     } else {
         switch (status) {
