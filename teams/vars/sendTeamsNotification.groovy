@@ -1,41 +1,47 @@
 import groovy.json.JsonOutput
 
-void call(String status, String pipelineName, int buildNumber, String buildUrl, String customMessage = '') {
+void call(String status, String pipelineName, int buildNumber, String buildUrl, String customMessage = '', boolean onlyCustomMessage = false) {
     String webhookUrl = teamsWebhookUrl()
     String themeColor
     String activityTitle
-
     String icon = teamsIcon(status)
 
-    switch (status) {
-        case 'SUCCESS':
-            themeColor = '007300'
-            activityTitle = "${icon} Pipeline ${status}!"
-            break
-        case 'FAILURE':
-            themeColor = 'FF0000'
-            activityTitle = "${icon} Pipeline ${status}!"
-            break
-        case 'ABORTED':
-            themeColor = '808080'
-            activityTitle = "${icon} Pipeline ${status}!"
-            break
-        case 'UNSTABLE':
-            themeColor = 'FFA500'
-            activityTitle = "${icon} Pipeline ${status}!"
-            break
-        default:
-            themeColor = '000000'
-            activityTitle = "${icon} Unknown Pipeline Status"
-            break
+    if (onlyCustomMessage) {
+        themeColor = '007300'  // Set a default color for the custom message
+        activityTitle = teamsBold(customMessage)  // Use custom message as the title
+    } else {
+        switch (status) {
+            case 'SUCCESS':
+                themeColor = '007300'
+                activityTitle = "${icon} Pipeline ${status}!"
+                break
+            case 'FAILURE':
+                themeColor = 'FF0000'
+                activityTitle = "${icon} Pipeline ${status}!"
+                break
+            case 'ABORTED':
+                themeColor = '808080'
+                activityTitle = "${icon} Pipeline ${status}!"
+                break
+            case 'UNSTABLE':
+                themeColor = 'FFA500'
+                activityTitle = "${icon} Pipeline ${status}!"
+                break
+            default:
+                themeColor = '000000'
+                activityTitle = "${icon} Unknown Pipeline Status"
+                break
+        }
     }
 
-    List<Map<String, String>> facts = [
-        ['name': 'Pipeline', 'value': "<a href=\"$buildUrl\">${pipelineName} #${buildNumber}</a>"]
-    ]
+    List<Map<String, String>> facts = []
+
+    if (!onlyCustomMessage) {
+        facts.add(['name': 'Pipeline', 'value': formatLink(buildUrl, "${pipelineName} #${buildNumber}")])
+    }
 
     if (customMessage) {
-        facts.add(['name': '', 'value': "<b>${customMessage}</b>"])
+        facts.add(['name': '', 'value': onlyCustomMessage ? customMessage : teamsBold(customMessage)])
     }
 
     Map<String, Object> payload = [
