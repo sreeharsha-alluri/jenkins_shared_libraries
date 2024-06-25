@@ -39,7 +39,11 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
     if (!onlyCustomMessage) {
         facts.add(['name': 'Pipeline', 'value': formatLink(buildUrl, "${pipelineName} #${buildNumber}")])
     }
-
+    
+    if (customMessage) {
+        payload.sections[0].text = onlyCustomMessage ? customMessage : teamsBold(customMessage)
+    }
+    
     Map<String, Object> payload = [
         '@type'      : 'MessageCard',
         '@context'   : 'http://schema.org/extensions',
@@ -50,10 +54,6 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
             'facts'        : facts
         ]]
     ]
-
-    if (customMessage) {
-        payload.sections[0].text = onlyCustomMessage ? customMessage : teamsBold(customMessage)
-    }
 
     String jsonPayload = JsonOutput.toJson(payload)
 
