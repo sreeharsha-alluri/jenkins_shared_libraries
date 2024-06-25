@@ -3,10 +3,13 @@ import groovy.json.JsonOutput
 void call(String status, String pipelineName, int buildNumber, String buildUrl, String customMessage = '', boolean onlyCustomMessage = false) {
     String webhookUrl = teamsWebhookUrl()
     String themeColor
-    String activityTitle = ''
+    String activityTitle
     String icon = teamsIcon(status)
 
-    if (!onlyCustomMessage) {
+    if (onlyCustomMessage) {
+        themeColor = '007300'  // Set a default color for the custom message
+        activityTitle = teamsBold(customMessage)  // Use custom message as the title
+    } else {
         switch (status) {
             case 'SUCCESS':
                 themeColor = '007300'
@@ -29,8 +32,6 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
                 activityTitle = "${icon} Unknown Pipeline Status"
                 break
         }
-    } else {
-        themeColor = '007300'  // Set a default color for the custom message
     }
 
     List<Map<String, String>> facts = []
@@ -40,22 +41,19 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
     }
 
     if (customMessage) {
-        facts.add(['name': '', 'value': customMessage])
+        facts.add(['name': '', 'value': onlyCustomMessage ? customMessage : teamsBold(customMessage)])
     }
 
     Map<String, Object> payload = [
         '@type'      : 'MessageCard',
         '@context'   : 'http://schema.org/extensions',
-        'summary'    : onlyCustomMessage ? customMessage : "Pipeline ${status}",
+        'summary'    : "Pipeline ${status}",
         'themeColor' : themeColor,
-        'sections'   : [
+        'sections'   : [[
+            'activityTitle': activityTitle,
             'facts'        : facts
-        ]
+        ]]
     ]
-
-    if (!onlyCustomMessage) {
-        payload.sections[0]['activityTitle'] = activityTitle
-    }
 
     String jsonPayload = JsonOutput.toJson(payload)
 
