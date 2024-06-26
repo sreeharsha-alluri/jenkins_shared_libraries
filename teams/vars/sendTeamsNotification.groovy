@@ -45,7 +45,7 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
     }
 
     if (mergedPRsMessage) {
-        facts.add(['name': 'Merged PRs', 'value': mergedPRsMessage])
+        facts.add(['name': '', 'value': mergedPRsMessage])
     }
 
     Map<String, Object> payload = [
