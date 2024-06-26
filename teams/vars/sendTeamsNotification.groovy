@@ -1,6 +1,6 @@
 import groovy.json.JsonOutput
 
-void call(String status, String pipelineName, int buildNumber, String buildUrl, String customMessage = '', boolean onlyCustomMessage = false) {
+void call(String status, String pipelineName, int buildNumber, String buildUrl, String customMessage = '', boolean onlyCustomMessage = false, String mergedPRsMessage = '') {
     String webhookUrl = teamsWebhookUrl()
     String themeColor
     String activityTitle
@@ -42,6 +42,10 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
 
     if (customMessage && !onlyCustomMessage) {
         facts.add(['name': '', 'value': teamsBold(customMessage)])
+    }
+
+    if (mergedPRsMessage) {
+        facts.add(['name': 'Merged PRs', 'value': mergedPRsMessage])
     }
 
     Map<String, Object> payload = [
