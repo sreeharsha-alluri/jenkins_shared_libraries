@@ -1,45 +1,87 @@
 import groovy.json.JsonOutput
 
-void call(String mention, List<String> mentionIds, List<String> mentionNames) {
-    // Define other necessary variables
-    def color = 'good'
-    def webhookUrl = env.TEAMS_WEBHOOK_URL
+void call(
+  String status,
+  String pipelineName,
+  int buildNumber,
+  String buildUrl,
+  String customMessage = '',
+  boolean onlyCustomMessage = false,
+  String mergedPRsMessage = ''
+  ) {
+    String webhookUrl = teamsWebhookUrl()
+    String themeColor
+    String activityTitle
+    String icon = teamsIcon(status)
 
-    // Create the JSON payload
-    def payload = """
-    {
-        "type": "message",
-        "attachments": [
-            {
-                "contentType": "application/vnd.microsoft.card.adaptive",
-                "content": {
-                    "type": "AdaptiveCard",
-                    "body": [
-                        {
-                            "type": "TextBlock",
-                            "text": "${mention}",
-                            "color": "${color}"
-                        }
-                    ],
-                    "msteams": {
-                        "entities": ${JsonOutput.toJson(createMentionEntities(mentionIds, mentionNames))}
-                    }
-                }
-            }
-        ]
+    if (onlyCustomMessage) {
+        themeColor = '008080'
+        activityTitle = customMessage
+    } else {
+        switch (status) {
+            case 'SUCCESS':
+                themeColor = '007300'
+                activityTitle = "${icon} Pipeline ${status}!"
+                break
+            case 'FAILURE':
+                themeColor = 'FF0000'
+                activityTitle = "${icon} Pipeline ${status}!"
+                break
+            case 'ABORTED':
+                themeColor = '808080'
+                activityTitle = "${icon} Pipeline ${status}!"
+                break
+            case 'UNSTABLE':
+                themeColor = 'FFA500'
+                activityTitle = "${icon} Pipeline ${status}!"
+                break
+            default:
+                themeColor = '000000'
+                activityTitle = "${icon} Unknown Pipeline Status"
+                break
+        }
     }
-    """
 
-    // Escape double quotes in the payload
-    def escapedPayload = payload.replaceAll(/"/, '\\\\"')
+    List<Map<String, String>> facts = []
 
-    // Execute the curl command to send the payload to Microsoft Teams webhook
+    if (!onlyCustomMessage) {
+        println "buildUrl: ${buildUrl}"
+        println "<a href=\"$buildUrl\">testing_hyperlink sdf sd</a>"
+        String message_string=formatLink(buildUrl, "${pipelineName} #${buildNumber}")
+        facts.add(['name': 'Pipeline', 'value': formatLink(buildUrl, "${pipelineName} #${buildNumber}").toString()])
+        facts.add(['name': 'Pipeline', 'value': message_string])
+        facts.add(['name': 'Pipeline', 'value': "<a href=\"$buildUrl\">${pipelineName} #${buildNumber}</a>"])
+    }
+
+    if (customMessage && !onlyCustomMessage) {
+        facts.add(['name': '', 'value': teamsBold(customMessage)])
+    }
+
+    if (mergedPRsMessage) {
+        facts.add(['name': '', 'value': mergedPRsMessage])
+    }
+
+    Map<String, Object> payload = [
+        '@type'      : 'MessageCard',
+        '@context'   : 'http://schema.org/extensions',
+        'summary'    : onlyCustomMessage ? customMessage : "Pipeline ${status}",
+        'themeColor' : themeColor,
+        'sections'   : [[
+            'activityTitle': activityTitle,
+            'facts'        : facts
+        ]]
+    ]
+
+    String jsonPayload = JsonOutput.toJson(payload)
+
     try {
-        sh """
-        curl -X POST -H 'Content-Type: application/json' -d "${escapedPayload}" '${webhookUrl}'
-        """
+        httpRequest(
+            contentType: 'APPLICATION_JSON',
+            httpMode: 'POST',
+            requestBody: jsonPayload,
+            url: webhookUrl
+        )
     } catch (Exception e) {
-        // Handle the error
-        echo "Error occurred while sending notification to Microsoft Teams: ${e.message}"
+        echo "Failed to send notification: ${e.message}"
     }
 }
