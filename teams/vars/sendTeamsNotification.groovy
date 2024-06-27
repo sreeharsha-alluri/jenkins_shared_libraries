@@ -47,7 +47,7 @@ void call(
     if (!onlyCustomMessage) {
         println "buildUrl: ${buildUrl}"
         println "<a href=\"$buildUrl\">testing_hyperlink sdf sd</a>"
-        message_string=formatLink(buildUrl, "${pipelineName} #${buildNumber}).toString() 
+        message_string=formatLink(buildUrl, "${pipelineName} #${buildNumber}).toString()
         facts.add(['name': 'Pipeline', 'value': formatLink(buildUrl, "${pipelineName} #${buildNumber}").toString()])
         facts.add(['name': 'Pipeline', 'value': message_string)])
         facts.add(['name': 'Pipeline', 'value': "<a href=\"$buildUrl\">${pipelineName} #${buildNumber}</a>"])
