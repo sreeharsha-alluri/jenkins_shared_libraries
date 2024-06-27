@@ -1,6 +1,6 @@
 import groovy.json.JsonOutput
 
-void call(String status, String pipelineName, int buildNumber, String buildUrl, String customMessage = '', boolean onlyCustomMessage = false, String mergedPRsMessage = '') {
+void call(String status, String pipelineName, int buildNumber, String buildUrl, String customMessage = '', boolean onlyCustomMessage = false) {
     String webhookUrl = teamsWebhookUrl()
     String themeColor
     String activityTitle
@@ -37,17 +37,11 @@ void call(String status, String pipelineName, int buildNumber, String buildUrl, 
     List<Map<String, String>> facts = []
 
     if (!onlyCustomMessage) {
-        // Correct the hyperlink formatting
-        String formattedLink = "[${pipelineName} #${buildNumber}](${buildUrl})"
-        facts.add(['name': 'Pipeline', 'value': formattedLink])
+        facts.add(['name': 'Pipeline', 'value': formatLink(buildUrl, "${pipelineName} #${buildNumber}")])
     }
 
     if (customMessage && !onlyCustomMessage) {
         facts.add(['name': '', 'value': teamsBold(customMessage)])
-    }
-
-    if (mergedPRsMessage) {
-        facts.add(['name': 'Merged PRs', 'value': mergedPRsMessage])
     }
 
     Map<String, Object> payload = [
