@@ -1,3 +1,4 @@
 String call(String url, String text) {
-    return "<a href=\"$url\">$text</a>"
+    return_string="<a href=\"$url\">$text</a>"
+    return return_string
 }
