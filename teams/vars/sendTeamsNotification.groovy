@@ -45,11 +45,6 @@ void call(
     List<Map<String, String>> facts = []
 
     if (!onlyCustomMessage) {
-        println "buildUrl: ${buildUrl}"
-        println "<a href=\"$buildUrl\">testing_hyperlink sdf sd</a>"
-        String message_string=formatLink(buildUrl, "${pipelineName} #${buildNumber}")
-        facts.add(['name': 'Pipeline', 'value': formatLink(buildUrl, "${pipelineName} #${buildNumber}").toString()])
-        facts.add(['name': 'Pipeline', 'value': message_string])
         facts.add(['name': 'Pipeline', 'value': "<a href=\"$buildUrl\">${pipelineName} #${buildNumber}</a>"])
     }
 
