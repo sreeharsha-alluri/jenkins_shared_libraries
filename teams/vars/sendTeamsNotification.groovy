@@ -7,7 +7,7 @@ void call(
   String buildUrl,
   String customMessage = '',
   boolean onlyCustomMessage = false,
-  String mergedPRsMessage = ''
+  String mergedPRsMessageTeams = ''
   ) {
     String webhookUrl = teamsWebhookUrl()
     String themeColor
@@ -52,8 +52,8 @@ void call(
         facts.add(['name': '', 'value': teamsBold(customMessage)])
     }
 
-    if (mergedPRsMessage) {
-        facts.add(['name': '', 'value': mergedPRsMessage])
+    if (mergedPRsMessageTeams) {
+        facts.add(['name': '', 'value': mergedPRsMessageTeams])
     }
 
     Map<String, Object> payload = [
