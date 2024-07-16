@@ -57,7 +57,7 @@ void call(
     }
 
     Map<String, Object> payload = [
-        '@type'      : 'MessageCard',
+        '@type'      : 'AdaptiveCard',
         '@context'   : 'http://schema.org/extensions',
         'summary'    : onlyCustomMessage ? customMessage : "Pipeline ${status}",
         'themeColor' : themeColor,
