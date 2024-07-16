@@ -79,6 +79,9 @@ void call(
 
     String jsonPayload = JsonOutput.toJson(payload)
 
+    // Log the payload for debugging
+    echo "Payload: ${jsonPayload}"
+
     try {
         httpRequest(
             contentType: 'APPLICATION_JSON',
