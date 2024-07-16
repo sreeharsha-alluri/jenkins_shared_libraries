@@ -16,19 +16,19 @@ void call(
     switch (status) {
         case 'SUCCESS':
             themeColor = '007300'
-            activityTitle = "Pipeline ${status}!"
+            activityTitle = "Pipeline SUCCESS!"
             break
         case 'FAILURE':
             themeColor = 'FF0000'
-            activityTitle = "Pipeline ${status}!"
+            activityTitle = "Pipeline FAILURE!"
             break
         case 'ABORTED':
             themeColor = '808080'
-            activityTitle = "Pipeline ${status}!"
+            activityTitle = "Pipeline ABORTED!"
             break
         case 'UNSTABLE':
             themeColor = 'FFA500'
-            activityTitle = "Pipeline ${status}!"
+            activityTitle = "Pipeline UNSTABLE!"
             break
         default:
             themeColor = '000000'
@@ -58,16 +58,12 @@ void call(
                 'type'      : 'TextBlock',
                 'text'      : activityTitle,
                 'weight'    : 'Bolder',
-                'size'      : 'Medium',
-                'color'     : themeColor == 'FF0000' ? 'Attention' : themeColor == 'FFA500' ? 'Warning' : themeColor == '007300' ? 'Good' : 'Default'
+                'size'      : 'Medium'
             ],
             [
                 'type'      : 'FactSet',
                 'facts'     : facts
             ]
-        ],
-        'msteams'    : [
-            'width'     : 'Full'
         ]
     ]
 
