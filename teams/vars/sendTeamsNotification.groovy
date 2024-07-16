@@ -36,33 +36,34 @@ void call(
             break
     }
 
-    List<Map<String, Object>> facts = []
+    List<Map<String, String>> facts = []
 
     if (!onlyCustomMessage) {
-        facts.add(['title': 'Pipeline', 'value': formatLink(buildUrl, "${pipelineName} #${buildNumber}")])
+        facts.add(['title': 'Pipeline', 'value': "${pipelineName} #${buildNumber}"])
     }
 
     if (customMessage && !onlyCustomMessage) {
-        facts.add(['title': '', 'value': teamsBold(customMessage)])
+        facts.add(['title': 'Message', 'value': customMessage])
     }
 
     if (mergedPRsMessageTeams) {
-        facts.add(['title': '', 'value': mergedPRsMessageTeams])
+        facts.add(['title': 'Merged PRs', 'value': mergedPRsMessageTeams])
     }
 
     Map<String, Object> payload = [
-        'type'       : 'AdaptiveCard',
-        'version'    : '1.2',
-        'body'       : [
+        'type'    : 'AdaptiveCard',
+        'version' : '1.2',
+        'body'    : [
             [
-                'type'      : 'TextBlock',
-                'text'      : activityTitle,
-                'weight'    : 'Bolder',
-                'size'      : 'Medium'
+                'type'   : 'TextBlock',
+                'text'   : activityTitle,
+                'weight' : 'Bolder',
+                'size'   : 'Medium',
+                'color'  : themeColor == 'FF0000' ? 'Attention' : themeColor == 'FFA500' ? 'Warning' : themeColor == '007300' ? 'Good' : 'Default'
             ],
             [
-                'type'      : 'FactSet',
-                'facts'     : facts
+                'type' : 'FactSet',
+                'facts': facts
             ]
         ]
     ]
