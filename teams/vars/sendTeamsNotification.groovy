@@ -45,7 +45,7 @@ void call(
     List<Map<String, Object>> facts = []
 
     if (!onlyCustomMessage) {
-        facts.add(['title': 'Pipeline', 'value': "<a href=\"$buildUrl\">${pipelineName} #${buildNumber}</a>"])
+        facts.add(['title': 'Pipeline', 'value': formatLink(buildUrl, "${pipelineName} #${buildNumber}")])
     }
 
     if (customMessage && !onlyCustomMessage) {
@@ -71,6 +71,9 @@ void call(
                 'type'      : 'FactSet',
                 'facts'     : facts
             ]
+        ],
+        'msteams'    : [
+            'width'     : 'Full'
         ]
     ]
 
