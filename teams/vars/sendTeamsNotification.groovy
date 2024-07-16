@@ -12,34 +12,28 @@ void call(
     String webhookUrl = teamsWebhookUrl()
     String themeColor
     String activityTitle
-    String icon = teamsIcon(status)
 
-    if (onlyCustomMessage) {
-        themeColor = '008080'
-        activityTitle = customMessage
-    } else {
-        switch (status) {
-            case 'SUCCESS':
-                themeColor = '007300'
-                activityTitle = "${icon} Pipeline ${status}!"
-                break
-            case 'FAILURE':
-                themeColor = 'FF0000'
-                activityTitle = "${icon} Pipeline ${status}!"
-                break
-            case 'ABORTED':
-                themeColor = '808080'
-                activityTitle = "${icon} Pipeline ${status}!"
-                break
-            case 'UNSTABLE':
-                themeColor = 'FFA500'
-                activityTitle = "${icon} Pipeline ${status}!"
-                break
-            default:
-                themeColor = '000000'
-                activityTitle = "${icon} Unknown Pipeline Status"
-                break
-        }
+    switch (status) {
+        case 'SUCCESS':
+            themeColor = '007300'
+            activityTitle = "Pipeline ${status}!"
+            break
+        case 'FAILURE':
+            themeColor = 'FF0000'
+            activityTitle = "Pipeline ${status}!"
+            break
+        case 'ABORTED':
+            themeColor = '808080'
+            activityTitle = "Pipeline ${status}!"
+            break
+        case 'UNSTABLE':
+            themeColor = 'FFA500'
+            activityTitle = "Pipeline ${status}!"
+            break
+        default:
+            themeColor = '000000'
+            activityTitle = "Unknown Pipeline Status"
+            break
     }
 
     List<Map<String, Object>> facts = []
