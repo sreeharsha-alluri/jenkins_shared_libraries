@@ -42,29 +42,36 @@ void call(
         }
     }
 
-    List<Map<String, String>> facts = []
+    List<Map<String, Object>> facts = []
 
     if (!onlyCustomMessage) {
-        facts.add(['name': 'Pipeline', 'value': "<a href=\"$buildUrl\">${pipelineName} #${buildNumber}</a>"])
+        facts.add(['title': 'Pipeline', 'value': "<a href=\"$buildUrl\">${pipelineName} #${buildNumber}</a>"])
     }
 
     if (customMessage && !onlyCustomMessage) {
-        facts.add(['name': '', 'value': teamsBold(customMessage)])
+        facts.add(['title': '', 'value': teamsBold(customMessage)])
     }
 
     if (mergedPRsMessageTeams) {
-        facts.add(['name': '', 'value': mergedPRsMessageTeams])
+        facts.add(['title': '', 'value': mergedPRsMessageTeams])
     }
 
     Map<String, Object> payload = [
-        '@type'      : 'AdaptiveCard',
-        '@context'   : 'http://schema.org/extensions',
-        'summary'    : onlyCustomMessage ? customMessage : "Pipeline ${status}",
-        'themeColor' : themeColor,
-        'sections'   : [[
-            'activityTitle': activityTitle,
-            'facts'        : facts
-        ]]
+        'type'       : 'AdaptiveCard',
+        'version'    : '1.2',
+        'body'       : [
+            [
+                'type'      : 'TextBlock',
+                'text'      : activityTitle,
+                'weight'    : 'Bolder',
+                'size'      : 'Medium',
+                'color'     : themeColor == 'FF0000' ? 'Attention' : themeColor == 'FFA500' ? 'Warning' : themeColor == '007300' ? 'Good' : 'Default'
+            ],
+            [
+                'type'      : 'FactSet',
+                'facts'     : facts
+            ]
+        ]
     ]
 
     String jsonPayload = JsonOutput.toJson(payload)
