@@ -75,6 +75,7 @@ void call(
     ]
 
     String jsonPayload = JsonOutput.toJson(payload)
+    echo "Payload: ${jsonPayload}"  // Print the payload for debugging
 
     try {
         httpRequest(
