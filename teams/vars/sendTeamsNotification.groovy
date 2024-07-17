@@ -42,7 +42,7 @@ void call(
         }
     }
 
-    List<Map<String, Object>> facts = []
+    List<Map<String, String>> facts = []
 
     if (!onlyCustomMessage) {
         facts.add(['title': 'Pipeline', 'value': "<a href=\"$buildUrl\">${pipelineName} #${buildNumber}</a>"])
@@ -59,7 +59,6 @@ void call(
     Map<String, Object> payload = [
         'type'       : 'AdaptiveCard',
         'context'    : 'https://schema.org/extensions',
-        'themeColor' : themeColor,
         'version'    : '1.0',
         'body'       : [[
             'type': 'Container',
