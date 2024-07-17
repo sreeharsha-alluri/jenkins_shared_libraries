@@ -45,7 +45,7 @@ void call(
     List<Map<String, String>> facts = []
 
     if (!onlyCustomMessage) {
-        facts.add(['title': 'Pipeline', 'value': "<a href=\"$buildUrl\">${pipelineName} #${buildNumber}</a>"])
+        facts.add(['title': 'Pipeline', 'value': "${pipelineName} #${buildNumber}"])
     }
 
     if (customMessage && !onlyCustomMessage) {
@@ -70,6 +70,13 @@ void call(
             ], [
                 'type': 'FactSet',
                 'facts': facts
+            ], [
+                'type': 'ActionSet',
+                'actions': [[
+                    'type': 'Action.OpenUrl',
+                    'title': 'View Pipeline',
+                    'url': buildUrl
+                ]]
             ]]
         ]]
     ]
