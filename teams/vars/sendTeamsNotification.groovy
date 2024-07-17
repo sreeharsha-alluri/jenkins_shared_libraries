@@ -58,25 +58,22 @@ void call(
 
     Map<String, Object> payload = [
         'type'       : 'AdaptiveCard',
-        'context'    : 'https://schema.org/extensions',
+        'context'    : 'http://schema.org/extensions',
         'version'    : '1.0',
         'body'       : [[
-            'type': 'Container',
-            'items': [[
-                'type'   : 'TextBlock',
-                'text'   : activityTitle,
-                'weight' : 'bolder',
-                'size'   : 'medium'
-            ], [
-                'type': 'FactSet',
-                'facts': facts
-            ], [
-                'type': 'ActionSet',
-                'actions': [[
-                    'type': 'Action.OpenUrl',
-                    'title': 'View Pipeline',
-                    'url': buildUrl
-                ]]
+            'type'   : 'TextBlock',
+            'text'   : activityTitle,
+            'weight' : 'bolder',
+            'size'   : 'medium'
+        ], [
+            'type': 'FactSet',
+            'facts': facts
+        ], [
+            'type': 'ActionSet',
+            'actions': [[
+                'type': 'Action.OpenUrl',
+                'title': 'View Pipeline',
+                'url': buildUrl
             ]]
         ]]
     ]
