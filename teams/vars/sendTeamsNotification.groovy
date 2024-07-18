@@ -1,62 +1,82 @@
 import groovy.json.JsonOutput
 
-def call(String status, String jobName, int buildNumber, String buildUrl) {
-    def webhookUrl = teamsWebhookUrl()
+void call(
+  String status,
+  String pipelineName,
+  int buildNumber,
+  String buildUrl,
+  String customMessage = '',
+  boolean onlyCustomMessage = false,
+  String mergedPRsMessageTeams = ''
+  ) {
+    String webhookUrl = teamsWebhookUrl()
+    String themeColor
+    String activityTitle
+    String icon = teamsIcon(status)
 
-    def icon = teamsIcon(status)
-    def boldJobName = teamsBold(jobName)
-    def boldBuildNumber = teamsBold(buildNumber.toString())
-    def boldStatus = teamsBold(status)
+    if (onlyCustomMessage) {
+        themeColor = '008080'
+        activityTitle = customMessage
+    } else {
+        switch (status) {
+            case 'SUCCESS':
+                themeColor = '007300'
+                activityTitle = "${icon} Pipeline ${status}!"
+                break
+            case 'FAILURE':
+                themeColor = 'FF0000'
+                activityTitle = "${icon} Pipeline ${status}!"
+                break
+            case 'ABORTED':
+                themeColor = '808080'
+                activityTitle = "${icon} Pipeline ${status}!"
+                break
+            case 'UNSTABLE':
+                themeColor = 'FFA500'
+                activityTitle = "${icon} Pipeline ${status}!"
+                break
+            default:
+                themeColor = '000000'
+                activityTitle = "${icon} Unknown Pipeline Status"
+                break
+        }
+    }
 
-    def payload = [
-        'type': 'message',
-        'attachments': [
-            [
-                'contentType': 'application/vnd.microsoft.card.adaptive',
-                'content': [
-                    'type': 'AdaptiveCard',
-                    'version': '1.2',
-                    'body': [
-                        [
-                            'type': 'TextBlock',
-                            'size': 'Large',
-                            'weight': 'Bolder',
-                            'text': "${icon} Build ${status}"
-                        ],
-                        [
-                            'type': 'FactSet',
-                            'facts': [
-                                [
-                                    'title': 'Job:',
-                                    'value': "<a href=\"$buildUrl\">$boldJobName</a>"
-                                ],
-                                [
-                                    'title': 'Build Number:',
-                                    'value': boldBuildNumber
-                                ],
-                                [
-                                    'title': 'Status:',
-                                    'value': boldStatus
-                                ]
-                            ]
-                        ]
-                    ],
-                    'actions': [
-                        [
-                            'type': 'Action.OpenUrl',
-                            'title': 'View Build',
-                            'url': buildUrl
-                        ]
-                    ]
-                ]
-            ]
-        ]
+    List<Map<String, String>> facts = []
+
+    if (!onlyCustomMessage) {
+        facts.add(['name': 'Pipeline', 'value': "<a href=\"$buildUrl\">${pipelineName} #${buildNumber}</a>"])
+    }
+
+    if (customMessage && !onlyCustomMessage) {
+        facts.add(['name': '', 'value': teamsBold(customMessage)])
+    }
+
+    if (mergedPRsMessageTeams) {
+        facts.add(['name': '', 'value': mergedPRsMessageTeams])
+    }
+
+    Map<String, Object> payload = [
+        '@type'      : 'MessageCard',
+        '@context'   : 'http://schema.org/extensions',
+        'summary'    : onlyCustomMessage ? customMessage : "Pipeline ${status}",
+        'themeColor' : themeColor,
+        'sections'   : [[
+            'activityTitle': activityTitle,
+            'facts'        : facts
+        ]]
     ]
 
-    def payloadJson = JsonOutput.toJson(payload)
+    String jsonPayload = JsonOutput.toJson(payload)
 
-    httpRequest httpMode: 'POST',
-                contentType: 'APPLICATION_JSON',
-                requestBody: payloadJson,
-                url: webhookUrl
+    try {
+        httpRequest(
+            contentType: 'APPLICATION_JSON',
+            httpMode: 'POST',
+            requestBody: jsonPayload,
+            url: webhookUrl
+        )
+    } catch (Exception e) {
+        echo "Failed to send notification: ${e.message}"
+    }
 }
