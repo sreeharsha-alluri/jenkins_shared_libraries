@@ -15,40 +15,47 @@ def call(String status, String jobName, int buildNumber, String buildUrl) {
                 'contentType': 'application/vnd.microsoft.card.adaptive',
                 'content': [
                     'type': 'AdaptiveCard',
-                    'width': "Full",
                     'version': '1.2',
                     'body': [
                         [
                             'type': 'TextBlock',
                             'size': 'Large',
                             'weight': 'Bolder',
-                            'text': "${icon} Build ${status}"
+                            'text': "${icon} Build ${status}",
+                            'wrap': true,
+                            'width': 'Full'
                         ],
                         [
                             'type': 'FactSet',
                             'facts': [
                                 [
                                     'title': 'Job:',
-                                    'value': "<a href=\"$buildUrl\">$boldJobName</a>"
+                                    'value': "<a href=\"$buildUrl\">$boldJobName</a>",
+                                    'width': 'Full'
                                 ],
                                 [
                                     'title': 'Build Number:',
-                                    'value': boldBuildNumber
+                                    'value': boldBuildNumber,
+                                    'width': 'Full'
                                 ],
                                 [
                                     'title': 'Status:',
-                                    'value': boldStatus
+                                    'value': boldStatus,
+                                    'width': 'Full'
                                 ]
-                            ]
+                            ],
+                            'width': 'Full'
                         ]
                     ],
                     'actions': [
                         [
                             'type': 'Action.OpenUrl',
                             'title': 'View Build',
-                            'url': buildUrl
+                            'url': buildUrl,
+                            'width': 'Full'
                         ]
-                    ]
+                    ],
+                    'width': 'Full'
                 ]
             ]
         ]
