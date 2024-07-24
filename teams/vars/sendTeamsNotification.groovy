@@ -15,6 +15,7 @@ def call(String status, String jobName, int buildNumber, String buildUrl) {
                 'contentType': 'application/vnd.microsoft.card.adaptive',
                 'content': [
                     'type': 'AdaptiveCard',
+                    'width': "Full",
                     'version': '1.2',
                     'body': [
                         [
