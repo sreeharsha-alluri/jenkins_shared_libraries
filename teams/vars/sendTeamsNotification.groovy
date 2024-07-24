@@ -6,6 +6,7 @@ def call(String status, String jobName, int buildNumber, String buildUrl, String
     def icon = teamsIcon(status)
     def jobAndBuildNumber = "${jobName} #${buildNumber}"
     def boldStatus = teamsBold(status)
+    def boldCustomMessage = customMessage ? teamsBold(customMessage) : ''
 
     def bodyElements = [
         [
@@ -43,7 +44,7 @@ def call(String status, String jobName, int buildNumber, String buildUrl, String
         bodyElements += [
             [
                 'type': 'TextBlock',
-                'text': customMessage,
+                'text': boldCustomMessage,
                 'wrap': true
             ]
         ]
