@@ -1,13 +1,12 @@
 import groovy.json.JsonOutput
 
-def call(String status, String jobName, int buildNumber, String buildUrl, String customMessage = '', boolean includeDefaultMessages = true, String mergedPRsMessageTeams = '', boolean onlyCustomMessage = false) {
-    def webhookUrl = teamsWebhookUrl()
-
-    def icon = teamsIcon(status)
-    def jobAndBuildNumber = "${jobName} #${buildNumber}"
-    def boldStatus = teamsBold(status)
-
-    def bodyElements = []
+void call(String status, String jobName, int buildNumber, String buildUrl, String customMessage = '',
+          boolean includeDefaultMessages = true, String mergedPRsMessageTeams = '', boolean onlyCustomMessage = false) {
+    String webhookUrl = teamsWebhookUrl()
+    String icon = teamsIcon(status)
+    String jobAndBuildNumber = "${jobName} #${buildNumber}"
+    
+    List<Map<String, Object>> bodyElements = []
 
     if (!onlyCustomMessage) {
         bodyElements += [
@@ -23,7 +22,7 @@ def call(String status, String jobName, int buildNumber, String buildUrl, String
 
     if (customMessage) {
         // Use \n for line breaks in the message
-        def formattedCustomMessage = customMessage.replaceAll("```", "").replaceAll("```", "").replaceAll("\n", "\\\\n")
+        String formattedCustomMessage = customMessage.replaceAll('```', '').replaceAll('```', '').replaceAll('\n', '\\\\n')
         bodyElements += [
             [
                 'type': 'TextBlock',
@@ -44,7 +43,7 @@ def call(String status, String jobName, int buildNumber, String buildUrl, String
         ]
     }
 
-    def payload = [
+    Map<String, Object> payload = [
         'type': 'message',
         'attachments': [
             [
@@ -68,7 +67,7 @@ def call(String status, String jobName, int buildNumber, String buildUrl, String
         ]
     ]
 
-    def payloadJson = JsonOutput.toJson(payload)
+    String payloadJson = JsonOutput.toJson(payload)
 
     httpRequest httpMode: 'POST',
                 contentType: 'APPLICATION_JSON',
