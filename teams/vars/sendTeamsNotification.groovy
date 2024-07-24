@@ -19,10 +19,9 @@ def call(String status, String jobName, int buildNumber, String buildUrl) {
                     'body': [
                         [
                             'type': 'TextBlock',
-                            'size': 'ExtraLarge',
+                            'size': 'Large',
                             'weight': 'Bolder',
-                            'text': "${icon} Build ${status}",
-                            'wrap': true
+                            'text': "${icon} Build ${status}"
                         ],
                         [
                             'type': 'FactSet',
@@ -40,16 +39,6 @@ def call(String status, String jobName, int buildNumber, String buildUrl) {
                                     'value': boldStatus
                                 ]
                             ]
-                        ],
-                        [
-                            'type': 'TextBlock',
-                            'text': ' ',
-                            'spacing': 'ExtraLarge'
-                        ],
-                        [
-                            'type': 'TextBlock',
-                            'text': ' ',
-                            'spacing': 'ExtraLarge'
                         ]
                     ],
                     'actions': [
@@ -58,9 +47,7 @@ def call(String status, String jobName, int buildNumber, String buildUrl) {
                             'title': 'View Build',
                             'url': buildUrl
                         ]
-                    ],
-                    'spacing': 'ExtraLarge',
-                    'padding': 'Large'
+                    ]
                 ]
             ]
         ]
