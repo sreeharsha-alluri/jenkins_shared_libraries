@@ -1,11 +1,63 @@
 import groovy.json.JsonOutput
 
-def call(String status, String jobName, int buildNumber, String buildUrl) {
+def call(String status, String jobName, int buildNumber, String buildUrl, String customMessage = '', boolean includeDefaultMessages = true, String mergedPRsMessageTeams = '') {
     def webhookUrl = teamsWebhookUrl()
 
     def icon = teamsIcon(status)
     def jobAndBuildNumber = "${jobName} #${buildNumber}"
     def boldStatus = teamsBold(status)
+
+    def bodyElements = [
+        [
+            'type': 'TextBlock',
+            'size': 'Large',
+            'weight': 'Bolder',
+            'text': "${icon} ${jobAndBuildNumber}",
+            'wrap': true
+        ]
+    ]
+
+    if (includeDefaultMessages) {
+        bodyElements += [
+            [
+                'type': 'FactSet',
+                'facts': [
+                    [
+                        'title': 'Job:',
+                        'value': jobAndBuildNumber
+                    ],
+                    [
+                        'title': 'Build Number:',
+                        'value': "${buildNumber}"
+                    ],
+                    [
+                        'title': 'Status:',
+                        'value': boldStatus
+                    ]
+                ]
+            ]
+        ]
+    }
+
+    if (customMessage) {
+        bodyElements += [
+            [
+                'type': 'TextBlock',
+                'text': customMessage,
+                'wrap': true
+            ]
+        ]
+    }
+
+    if (mergedPRsMessageTeams) {
+        bodyElements += [
+            [
+                'type': 'TextBlock',
+                'text': mergedPRsMessageTeams,
+                'wrap': true
+            ]
+        ]
+    }
 
     def payload = [
         'type': 'message',
@@ -15,32 +67,7 @@ def call(String status, String jobName, int buildNumber, String buildUrl) {
                 'content': [
                     'type': 'AdaptiveCard',
                     'version': '1.2',
-                    'body': [
-                        [
-                            'type': 'TextBlock',
-                            'size': 'Large',
-                            'weight': 'Bolder',
-                            'text': "${icon} ${jobAndBuildNumber}",
-                            'wrap': true
-                        ],
-                        [
-                            'type': 'FactSet',
-                            'facts': [
-                                [
-                                    'title': 'Job:',
-                                    'value': jobAndBuildNumber
-                                ],
-                                [
-                                    'title': 'Build Number:',
-                                    'value': "${buildNumber}"
-                                ],
-                                [
-                                    'title': 'Status:',
-                                    'value': boldStatus
-                                ]
-                            ]
-                        ]
-                    ],
+                    'body': bodyElements,
                     'actions': [
                         [
                             'type': 'Action.OpenUrl',
