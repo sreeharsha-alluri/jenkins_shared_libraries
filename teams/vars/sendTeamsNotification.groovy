@@ -26,10 +26,6 @@ def call(String status, String jobName, int buildNumber, String buildUrl, String
             [
                 'type': 'FactSet',
                 'facts': [
-                    [
-                        'title': 'Build Number:',
-                        'value': "${buildNumber}"
-                    ],
                 ]
             ]
         ]
