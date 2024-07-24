@@ -21,8 +21,6 @@ void call(String status, String jobName, int buildNumber, String buildUrl, Strin
     }
 
     if (customMessage) {
-        customMessage = customMessage.replaceAll('\n', '\\n')
-        // Use \n for line breaks in the message
         bodyElements += [
             [
                 'type': 'TextBlock',
