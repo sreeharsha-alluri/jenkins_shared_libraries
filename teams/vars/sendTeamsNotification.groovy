@@ -15,27 +15,19 @@ def call(String status, String jobName, int buildNumber, String buildUrl, String
                 'type': 'TextBlock',
                 'size': 'Large',
                 'weight': 'Bolder',
-                'text': "${icon} ${jobAndBuildNumber}",
+                'text': "${icon} ${jobAndBuildNumber} ${status}",
                 'wrap': true
             ]
         ]
     }
 
-    if (includeDefaultMessages && !onlyCustomMessage) {
-        bodyElements += [
-            [
-                'type': 'FactSet',
-                'facts': [
-                ]
-            ]
-        ]
-    }
-
     if (customMessage) {
+        // Use \n for line breaks in the message
+        def formattedCustomMessage = customMessage.replaceAll("```", "").replaceAll("```", "").replaceAll("\n", "\\\\n")
         bodyElements += [
             [
                 'type': 'TextBlock',
-                'text': customMessage,
+                'text': formattedCustomMessage,
                 'weight': 'Bolder',
                 'wrap': true
             ]
