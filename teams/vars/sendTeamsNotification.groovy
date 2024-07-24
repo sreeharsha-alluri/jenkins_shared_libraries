@@ -1,23 +1,27 @@
 import groovy.json.JsonOutput
 
-def call(String status, String jobName, int buildNumber, String buildUrl, String customMessage = '', boolean includeDefaultMessages = true, String mergedPRsMessageTeams = '') {
+def call(String status, String jobName, int buildNumber, String buildUrl, String customMessage = '', boolean includeDefaultMessages = true, String mergedPRsMessageTeams = '', boolean onlyCustomMessage = false) {
     def webhookUrl = teamsWebhookUrl()
 
     def icon = teamsIcon(status)
     def jobAndBuildNumber = "${jobName} #${buildNumber}"
     def boldStatus = teamsBold(status)
 
-    def bodyElements = [
-        [
-            'type': 'TextBlock',
-            'size': 'Large',
-            'weight': 'Bolder',
-            'text': "${icon} ${jobAndBuildNumber}",
-            'wrap': true
-        ]
-    ]
+    def bodyElements = []
 
-    if (includeDefaultMessages) {
+    if (!onlyCustomMessage) {
+        bodyElements += [
+            [
+                'type': 'TextBlock',
+                'size': 'Large',
+                'weight': 'Bolder',
+                'text': "${icon} ${jobAndBuildNumber}",
+                'wrap': true
+            ]
+        ]
+    }
+
+    if (includeDefaultMessages && !onlyCustomMessage) {
         bodyElements += [
             [
                 'type': 'FactSet',
@@ -42,7 +46,7 @@ def call(String status, String jobName, int buildNumber, String buildUrl, String
         ]
     }
 
-    if (mergedPRsMessageTeams) {
+    if (mergedPRsMessageTeams && !onlyCustomMessage) {
         bodyElements += [
             [
                 'type': 'TextBlock',
@@ -61,7 +65,7 @@ def call(String status, String jobName, int buildNumber, String buildUrl, String
                     'type': 'AdaptiveCard',
                     'version': '1.2',
                     'body': bodyElements,
-                    'actions': [
+                    'actions': onlyCustomMessage ? [] : [
                         [
                             'type': 'Action.OpenUrl',
                             'title': 'View Build',
