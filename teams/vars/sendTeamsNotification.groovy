@@ -22,11 +22,10 @@ void call(String status, String jobName, int buildNumber, String buildUrl, Strin
 
     if (customMessage) {
         // Use \n for line breaks in the message
-        String formattedCustomMessage = customMessage.replaceAll('```', '').replaceAll('```', '').replaceAll('\n', '\\\\n')
         bodyElements += [
             [
                 'type': 'TextBlock',
-                'text': formattedCustomMessage,
+                'text': customMessage,
                 'weight': 'Bolder',
                 'wrap': true
             ]
