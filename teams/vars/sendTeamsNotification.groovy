@@ -22,40 +22,36 @@ def call(String status, String jobName, int buildNumber, String buildUrl) {
                             'size': 'Large',
                             'weight': 'Bolder',
                             'text': "${icon} Build ${status}",
-                            'wrap': true,
-                            'width': 'Full'
+                            'wrap': true
                         ],
                         [
                             'type': 'FactSet',
                             'facts': [
                                 [
                                     'title': 'Job:',
-                                    'value': "<a href=\"$buildUrl\">$boldJobName</a>",
-                                    'width': 'Full'
+                                    'value': "<a href=\"$buildUrl\">$boldJobName</a>"
                                 ],
                                 [
                                     'title': 'Build Number:',
-                                    'value': boldBuildNumber,
-                                    'width': 'Full'
+                                    'value': boldBuildNumber
                                 ],
                                 [
                                     'title': 'Status:',
-                                    'value': boldStatus,
-                                    'width': 'Full'
+                                    'value': boldStatus
                                 ]
-                            ],
-                            'width': 'Full'
+                            ]
                         ]
                     ],
                     'actions': [
                         [
                             'type': 'Action.OpenUrl',
                             'title': 'View Build',
-                            'url': buildUrl,
-                            'width': 'Full'
+                            'url': buildUrl
                         ]
                     ],
-                    'width': 'Full'
+                    'msteams': [
+                        'width': 'Full'
+                    ]
                 ]
             ]
         ]
