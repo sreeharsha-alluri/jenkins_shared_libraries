@@ -4,10 +4,8 @@ def call(String status, String jobName, int buildNumber, String buildUrl) {
     def webhookUrl = teamsWebhookUrl()
 
     def icon = teamsIcon(status)
-    def boldJobName = teamsBold(jobName)
-    def boldBuildNumber = teamsBold(buildNumber.toString())
+    def jobAndBuildNumber = "${jobName} #${buildNumber}"
     def boldStatus = teamsBold(status)
-    def hyperlink = "<a href=\"$buildUrl\"><b>${jobName} #${buildNumber}</b></a>"
 
     def payload = [
         'type': 'message',
@@ -22,7 +20,7 @@ def call(String status, String jobName, int buildNumber, String buildUrl) {
                             'type': 'TextBlock',
                             'size': 'Large',
                             'weight': 'Bolder',
-                            'text': "${icon} ${hyperlink}",
+                            'text': "${icon} ${jobAndBuildNumber}",
                             'wrap': true
                         ],
                         [
@@ -30,11 +28,11 @@ def call(String status, String jobName, int buildNumber, String buildUrl) {
                             'facts': [
                                 [
                                     'title': 'Job:',
-                                    'value': hyperlink
+                                    'value': jobAndBuildNumber
                                 ],
                                 [
                                     'title': 'Build Number:',
-                                    'value': boldBuildNumber
+                                    'value': "${buildNumber}"
                                 ],
                                 [
                                     'title': 'Status:',
