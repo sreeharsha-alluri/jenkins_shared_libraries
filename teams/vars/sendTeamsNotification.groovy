@@ -7,6 +7,7 @@ def call(String status, String jobName, int buildNumber, String buildUrl) {
     def boldJobName = teamsBold(jobName)
     def boldBuildNumber = teamsBold(buildNumber.toString())
     def boldStatus = teamsBold(status)
+    def hyperlink = "<a href=\"$buildUrl\"><b>${jobName} #${buildNumber}</b></a>"
 
     def payload = [
         'type': 'message',
@@ -21,7 +22,7 @@ def call(String status, String jobName, int buildNumber, String buildUrl) {
                             'type': 'TextBlock',
                             'size': 'Large',
                             'weight': 'Bolder',
-                            'text': "${icon} Build ${status}",
+                            'text': "${icon} ${hyperlink}",
                             'wrap': true
                         ],
                         [
@@ -29,7 +30,7 @@ def call(String status, String jobName, int buildNumber, String buildUrl) {
                             'facts': [
                                 [
                                     'title': 'Job:',
-                                    'value': "<a href=\"$buildUrl\">$boldJobName</a>"
+                                    'value': hyperlink
                                 ],
                                 [
                                     'title': 'Build Number:',
