@@ -1,5 +1,5 @@
-void call(String status, String jobName, int buildNumber, String buildUrl, String customMessage = '',
-          boolean onlyCustomMessage = false, String mergedPRsMessageTeams = '', String webhookUrl = '') {
+void call(String webhookUrl = '', String status, String jobName, int buildNumber, String buildUrl, String customMessage = '',
+          boolean onlyCustomMessage = false, String mergedPRsMessageTeams = '') {
     
     webhookUrl = webhookUrl ?: teamsWebhookUrl() // Use the provided webhook URL or default if not provided
     String icon = teamsIcon(status)
