@@ -49,13 +49,7 @@ void call(String status, String jobName, int buildNumber, String buildUrl, Strin
         mentions.each { mention ->
             Map<String, Object> mentionEntity = teamsMention(mention['email'], mention['displayName'])
             mentionEntities.add(mentionEntity)
-            bodyElements += [
-                [
-                    'type': 'TextBlock',
-                    'text': mentionEntity['text'],
-                    'wrap': true
-                ]
-            ]
+            customMessage = customMessage.replace("<at>${mention['displayName']}</at>", mentionEntity['text'])
         }
     }
 
