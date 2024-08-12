@@ -1,7 +1,7 @@
 void call(String status, String jobName, int buildNumber, String buildUrl, String customMessage = '',
-          boolean onlyCustomMessage = false, String mergedPRsMessageTeams = '') {
+          boolean onlyCustomMessage = false, String mergedPRsMessageTeams = '', String webhookUrl = '') {
     
-    String webhookUrl = teamsWebhookUrl() // Use the provided webhook URL or default if not provided
+    webhookUrl = webhookUrl ?: teamsWebhookUrl() // Use the provided webhook URL or default if not provided
     String icon = teamsIcon(status)
     String jobAndBuildNumber = "${jobName} #${buildNumber}"
     List<Map<String, Object>> bodyElements = []
