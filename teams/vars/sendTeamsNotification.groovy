@@ -1,12 +1,15 @@
 import groovy.json.JsonOutput
 
 void call(String status, String jobName, int buildNumber, String buildUrl, String customMessage = '',
-          boolean onlyCustomMessage = false, String mergedPRsMessageTeams = '', String webhookUrl = '') {
-    
-    String finalWebhookUrl = webhookUrl ?: teamsWebhookUrl() // Use the provided webhook URL or default if not provided
+          boolean onlyCustomMessage = false, String mergedPRsMessageTeams = '', String webhookUrl = '',
+          List<Map<String, String>> mentions = []) {
+
+    // Uses the provided webhook URL or default if not provided
+    String finalWebhookUrl = webhookUrl ?: teamsWebhookUrl()
     String icon = teamsIcon(status)
     String jobAndBuildNumber = "${jobName} #${buildNumber}"
     List<Map<String, Object>> bodyElements = []
+    List<Map<String, Object>> mentionEntities = []
 
     if (!onlyCustomMessage) {
         bodyElements += [
@@ -41,6 +44,21 @@ void call(String status, String jobName, int buildNumber, String buildUrl, Strin
         ]
     }
 
+    // Add mentions to the card if provided
+    if (mentions) {
+        mentions.each { mention ->
+            Map<String, Object> mentionEntity = teamsMention(mention['email'], mention['displayName'])
+            mentionEntities.add(mentionEntity)
+            bodyElements += [
+                [
+                    'type': 'TextBlock',
+                    'text': mentionEntity['text'],
+                    'wrap': true
+                ]
+            ]
+        }
+    }
+
     Map<String, Object> payload = [
         'type': 'message',
         'attachments': [
@@ -50,15 +68,16 @@ void call(String status, String jobName, int buildNumber, String buildUrl, Strin
                     'type': 'AdaptiveCard',
                     'version': '1.2',
                     'body': bodyElements,
+                    'msteams': [
+                        'width': 'Full',
+                        'entities': mentionEntities
+                    ],
                     'actions': onlyCustomMessage ? [] : [
                         [
                             'type': 'Action.OpenUrl',
                             'title': 'View Build',
                             'url': buildUrl
                         ]
-                    ],
-                    'msteams': [
-                        'width': 'Full'
                     ]
                 ]
             ]
