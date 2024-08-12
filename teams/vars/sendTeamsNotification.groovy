@@ -1,11 +1,9 @@
-import groovy.json.JsonOutput
-
 void call(String status, String jobName, int buildNumber, String buildUrl, String customMessage = '',
-          boolean onlyCustomMessage = false, String mergedPRsMessageTeams = '') {
-    String webhookUrl = teamsWebhookUrl()
+          boolean onlyCustomMessage = false, String mergedPRsMessageTeams = '', String webhookUrl = '') {
+    
+    webhookUrl = webhookUrl ?: teamsWebhookUrl() // Use the provided webhook URL or default if not provided
     String icon = teamsIcon(status)
     String jobAndBuildNumber = "${jobName} #${buildNumber}"
-    
     List<Map<String, Object>> bodyElements = []
 
     if (!onlyCustomMessage) {
