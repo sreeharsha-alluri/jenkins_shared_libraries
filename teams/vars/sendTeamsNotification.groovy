@@ -11,6 +11,9 @@ void call(String status, String jobName, int buildNumber, String buildUrl, Strin
     List<Map<String, Object>> bodyElements = []
     List<Map<String, Object>> mentionEntities = []
 
+    // Temporary variable to hold the modified custom message
+    String messageWithMentions = customMessage
+
     if (!onlyCustomMessage) {
         bodyElements += [
             [
@@ -27,7 +30,7 @@ void call(String status, String jobName, int buildNumber, String buildUrl, Strin
         bodyElements += [
             [
                 'type': 'TextBlock',
-                'text': customMessage,
+                'text': messageWithMentions,
                 'weight': 'Bolder',
                 'wrap': true
             ]
@@ -49,7 +52,7 @@ void call(String status, String jobName, int buildNumber, String buildUrl, Strin
         mentions.each { mention ->
             Map<String, Object> mentionEntity = teamsMention(mention['email'], mention['displayName'])
             mentionEntities.add(mentionEntity)
-            customMessage = customMessage.replace("<at>${mention['displayName']}</at>", mentionEntity['text'])
+            messageWithMentions = messageWithMentions.replace("<at>${mention['displayName']}</at>", mentionEntity['text'])
         }
     }
 
