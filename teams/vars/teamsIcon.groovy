@@ -1,4 +1,4 @@
-String call(String reason) {
+    String call(String reason) {
     String icon = ''
     switch (reason) {
         case 'SUCCESS':
@@ -15,6 +15,9 @@ String call(String reason) {
             break
         case 'BULLET':
             icon = '•'
+            break
+        case 'LOCK':
+            icon = '🔒'
             break
     }
     return icon
