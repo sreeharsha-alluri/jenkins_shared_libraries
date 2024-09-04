@@ -1,18 +1,12 @@
 import groovy.json.JsonOutput
 
 void call(String status, String jobName, int buildNumber, String buildUrl, String customMessage = '',
-          boolean onlyCustomMessage = false, String mergedPRsMessageTeams = '', String webhookUrl = '',
-          String mentions = '') {
-
+          boolean onlyCustomMessage = false, String mergedPRsMessageTeams = '', String webhookUrl = '') {
     // Uses the provided webhook URL or default if not provided
     String finalWebhookUrl = webhookUrl ?: teamsWebhookUrl()
     String icon = teamsIcon(status)
     String jobAndBuildNumber = "${jobName} #${buildNumber}"
     List<Map<String, Object>> bodyElements = []
-    List<Map<String, Object>> mentionEntities = []
-
-    // Temporary variable to hold the modified custom message
-    String messageWithMentions = customMessage
 
     if (!onlyCustomMessage) {
         bodyElements += [
@@ -30,7 +24,7 @@ void call(String status, String jobName, int buildNumber, String buildUrl, Strin
         bodyElements += [
             [
                 'type': 'TextBlock',
-                'text': messageWithMentions,
+                'text': customMessage,
                 'weight': 'Bolder',
                 'wrap': true
             ]
@@ -47,15 +41,6 @@ void call(String status, String jobName, int buildNumber, String buildUrl, Strin
         ]
     }
 
-    // Add mentions to the card if provided
-    if (mentions) {
-        mentions.each { mention ->
-            Map<String, Object> mentionEntity = teamsMention(mention['email'], mention['displayName'])
-            mentionEntities.add(mentionEntity)
-            messageWithMentions = messageWithMentions.replace("<at>${mention['displayName']}</at>", mentionEntity['text'])
-        }
-    }
-
     Map<String, Object> payload = [
         'type': 'message',
         'attachments': [
@@ -65,16 +50,15 @@ void call(String status, String jobName, int buildNumber, String buildUrl, Strin
                     'type': 'AdaptiveCard',
                     'version': '1.2',
                     'body': bodyElements,
-                    'msteams': [
-                        'width': 'Full',
-                        'entities': mentionEntities
-                    ],
                     'actions': onlyCustomMessage ? [] : [
                         [
                             'type': 'Action.OpenUrl',
                             'title': 'View Build',
                             'url': buildUrl
                         ]
+                    ],
+                    'msteams': [
+                        'width': 'Full'
                     ]
                 ]
             ]
