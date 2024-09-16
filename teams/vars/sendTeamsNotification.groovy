@@ -48,13 +48,14 @@ void call(String status, String jobName, int buildNumber, String buildUrl, Strin
 
     // If tagging users is enabled, add mention entities for users
     if (tagUsers) {
+        // Creating mention entities for sreehass and nikamuni
         mentionEntities = createMentionEntities(['sreehass@amd.com', 'nikamuni@amd.com'])
 
         // Adding mentions to the notification body
         bodyElements += [
             [
                 'type': 'TextBlock',
-                'text': "Hey <at>sreehass</at> and <at>nikamuni</at>, check the build status!",
+                'text': "Hey, <at>sreehass</at> and <at>nikamuni</at>, check the build status!",
                 'wrap': true
             ]
         ]
@@ -81,7 +82,7 @@ void call(String status, String jobName, int buildNumber, String buildUrl, Strin
             ]
         ],
         'msteams': [
-            'entities': mentionEntities,
+            'entities': mentionEntities, // This is crucial for mentions
             'width': 'Full'
         ]
     ]
