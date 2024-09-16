@@ -1,8 +1,7 @@
 import groovy.json.JsonOutput
 
 void call(String status, String jobName, int buildNumber, String buildUrl, String customMessage = '',
-          boolean onlyCustomMessage = false, String mergedPRsMessageTeams = '', String webhookUrl = '',
-          List<Map<String, String>> mentions = []) {
+          boolean onlyCustomMessage = false, String mergedPRsMessageTeams = '', String webhookUrl = '') {
 
     // Uses the provided webhook URL or default if not provided
     String finalWebhookUrl = webhookUrl ?: teamsWebhookUrl()
@@ -47,7 +46,10 @@ void call(String status, String jobName, int buildNumber, String buildUrl, Strin
         ]
     }
 
-    // Add mentions to the card if provided
+    // Determine who to mention dynamically
+    List<Map<String, String>> mentions = getMentions()
+
+    // Add mentions to the card if determined
     if (mentions) {
         mentions.each { mention ->
             Map<String, Object> mentionEntity = teamsMention(mention['email'], mention['displayName'])
@@ -87,4 +89,23 @@ void call(String status, String jobName, int buildNumber, String buildUrl, Strin
                 contentType: 'APPLICATION_JSON',
                 requestBody: payloadJson,
                 url: finalWebhookUrl
+}
+
+// This method dynamically determines the person to be tagged (for example, PR owner)
+List<Map<String, String>> getMentions() {
+    // Logic to get user based on PR ownership, job status, etc.
+    String prOwnerEmail = getPROwnerEmail()
+    String prOwnerName = getPROwnerName()
+
+    return [[email: prOwnerEmail, displayName: prOwnerName]]
+}
+
+String getPROwnerEmail() {
+    // Extract PR owner email dynamically
+    return "nikamuni@amd.com" // Example, replace with actual extraction logic
+}
+
+String getPROwnerName() {
+    // Extract PR owner name dynamically
+    return "nikamuni" // Example, replace with actual extraction logic
 }
