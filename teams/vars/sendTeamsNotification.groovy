@@ -1,18 +1,19 @@
 import groovy.json.JsonOutput
 
 void call(String status, String jobName, int buildNumber, String buildUrl, String customMessage = '',
-          boolean onlyCustomMessage = false, String mergedPRsMessageTeams = '', String webhookUrl = '') {
-    
+          boolean onlyCustomMessage = false, String mergedPRsMessageTeams = '', String webhookUrl = '',
+          List<Map<String, String>> mentions = []) {
+
     // Uses the provided webhook URL or default if not provided
     String finalWebhookUrl = webhookUrl ?: teamsWebhookUrl()
     String icon = teamsIcon(status)
     String jobAndBuildNumber = "${jobName} #${buildNumber}"
     List<Map<String, Object>> bodyElements = []
+    List<Map<String, Object>> mentionEntities = []
 
-    // Tagging Users
-    def mentionEntities = createMentionEntities(['sreehass@amd.com', 'nikamuni@amd.com'])
+    // Temporary variable to hold the modified custom message
+    String messageWithMentions = customMessage
 
-    // Add job and status information to the message body
     if (!onlyCustomMessage) {
         bodyElements += [
             [
@@ -25,19 +26,17 @@ void call(String status, String jobName, int buildNumber, String buildUrl, Strin
         ]
     }
 
-    // Add custom message if provided
     if (customMessage) {
         bodyElements += [
             [
                 'type': 'TextBlock',
-                'text': customMessage,
+                'text': messageWithMentions,
                 'weight': 'Bolder',
                 'wrap': true
             ]
         ]
     }
 
-    // Add merged PRs message if provided
     if (mergedPRsMessageTeams && !onlyCustomMessage) {
         bodyElements += [
             [
@@ -48,7 +47,15 @@ void call(String status, String jobName, int buildNumber, String buildUrl, Strin
         ]
     }
 
-    // Create the payload with mention entities
+    // Add mentions to the card if provided
+    if (mentions) {
+        mentions.each { mention ->
+            Map<String, Object> mentionEntity = teamsMention(mention['email'], mention['displayName'])
+            mentionEntities.add(mentionEntity)
+            messageWithMentions = messageWithMentions.replace("<at>${mention['displayName']}</at>", mentionEntity['text'])
+        }
+    }
+
     Map<String, Object> payload = [
         'type': 'message',
         'attachments': [
@@ -59,40 +66,25 @@ void call(String status, String jobName, int buildNumber, String buildUrl, Strin
                     'version': '1.2',
                     'body': bodyElements,
                     'msteams': [
-                        'entities': mentionEntities,
-                        'width': 'Full'
+                        'width': 'Full',
+                        'entities': mentionEntities
+                    ],
+                    'actions': onlyCustomMessage ? [] : [
+                        [
+                            'type': 'Action.OpenUrl',
+                            'title': 'View Build',
+                            'url': buildUrl
+                        ]
                     ]
                 ]
             ]
         ]
     ]
 
-    // Convert the payload to JSON
     String payloadJson = JsonOutput.toJson(payload)
 
-    // Debugging: Print the payload
-    echo "Payload: ${payloadJson}"
-
-    // Send the notification to the Teams webhook
     httpRequest httpMode: 'POST',
                 contentType: 'APPLICATION_JSON',
                 requestBody: payloadJson,
                 url: finalWebhookUrl
-}
-
-// Function to create mention entities dynamically
-List<Map> createMentionEntities(List<String> emails) {
-    List<Map> entities = []
-    emails.each { email ->
-        def displayName = email.split('@')[0] // Extract display name from email
-        entities.add([
-            'type': 'mention',
-            'text': "<at>${displayName}</at>",
-            'mentioned': [
-                'id': email,
-                'name': displayName
-            ]
-        ])
-    }
-    return entities
 }
