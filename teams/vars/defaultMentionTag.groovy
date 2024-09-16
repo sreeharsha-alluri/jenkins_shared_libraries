@@ -3,5 +3,5 @@ String call(List<Map<String, String>> mentions) {
     mentions.each { mention ->
         tag += "<at>${mention['displayName']}</at> "
     }
-    return tag.trim() + " for testing"
+    return tag.trim()
 }
