@@ -4,15 +4,20 @@ void call(String status, String jobName, int buildNumber, String buildUrl, Strin
           boolean onlyCustomMessage = false, String mergedPRsMessageTeams = '', String webhookUrl = '',
           List<Map<String, String>> mentions = []) {
 
-    // Uses the provided webhook URL or default if not provided
+    // If no mentions provided, get default mentions and tag
+    if (!mentions) {
+        mentions = defaultUserMentions()
+    }
+    
+    String tag = defaultMentionTag(mentions)
+
     String finalWebhookUrl = webhookUrl ?: teamsWebhookUrl()
     String icon = teamsIcon(status)
     String jobAndBuildNumber = "${jobName} #${buildNumber}"
     List<Map<String, Object>> bodyElements = []
     List<Map<String, Object>> mentionEntities = []
 
-    // Temporary variable to hold the modified custom message
-    String messageWithMentions = customMessage
+    String messageWithMentions = customMessage ? customMessage : tag
 
     if (!onlyCustomMessage) {
         bodyElements += [
@@ -26,7 +31,7 @@ void call(String status, String jobName, int buildNumber, String buildUrl, Strin
         ]
     }
 
-    if (customMessage) {
+    if (messageWithMentions) {
         bodyElements += [
             [
                 'type': 'TextBlock',
@@ -47,7 +52,6 @@ void call(String status, String jobName, int buildNumber, String buildUrl, Strin
         ]
     }
 
-    // Add mentions to the card if provided
     if (mentions) {
         mentions.each { mention ->
             Map<String, Object> mentionEntity = teamsMention(mention['email'], mention['displayName'])
