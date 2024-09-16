@@ -1,5 +1,9 @@
 List<Map<String, String>> call() {
-    return [
-        [email: 'nikamuni@amd.com', displayName: 'nikamuni']
-    ]
+    List<String> usernames = ['nikamuni']  // You can add more usernames here if needed
+    return usernames.collect { username ->
+        [
+            email: "${username}@amd.com",
+            displayName: username
+        ]
+    }
 }
