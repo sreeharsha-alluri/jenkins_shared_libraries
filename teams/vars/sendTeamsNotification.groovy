@@ -1,15 +1,16 @@
 import groovy.json.JsonOutput
 
 void call(String status, String jobName, int buildNumber, String buildUrl, String customMessage = '',
-          boolean onlyCustomMessage = false, String mergedPRsMessageTeams = '', String webhookUrl = '', 
-          boolean enableTagging = false) {
-
-    // Uses the provided webhook URL or default if not provided
+          boolean onlyCustomMessage = false, String mergedPRsMessageTeams = '', String webhookUrl = '', boolean tagUsers = false) {
+    
+    // Use the provided webhook URL or a default if not provided
     String finalWebhookUrl = webhookUrl ?: teamsWebhookUrl()
     String icon = teamsIcon(status)
     String jobAndBuildNumber = "${jobName} #${buildNumber}"
     List<Map<String, Object>> bodyElements = []
+    List<Map<String, Object>> mentionEntities = []
 
+    // Add basic notification content if onlyCustomMessage is false
     if (!onlyCustomMessage) {
         bodyElements += [
             [
@@ -22,6 +23,7 @@ void call(String status, String jobName, int buildNumber, String buildUrl, Strin
         ]
     }
 
+    // Add custom message content if provided
     if (customMessage) {
         bodyElements += [
             [
@@ -33,6 +35,7 @@ void call(String status, String jobName, int buildNumber, String buildUrl, Strin
         ]
     }
 
+    // Add merged PRs message if provided and onlyCustomMessage is false
     if (mergedPRsMessageTeams && !onlyCustomMessage) {
         bodyElements += [
             [
@@ -43,6 +46,21 @@ void call(String status, String jobName, int buildNumber, String buildUrl, Strin
         ]
     }
 
+    // If tagging users is enabled, add mention entities for users
+    if (tagUsers) {
+        mentionEntities = createMentionEntities(['sreehass@amd.com', 'nikamuni@amd.com'])
+
+        // Adding mentions to the notification body
+        bodyElements += [
+            [
+                'type': 'TextBlock',
+                'text': "Hey <at>sreehass</at> and <at>nikamuni</at>, check the build status!",
+                'wrap': true
+            ]
+        ]
+    }
+
+    // Build the payload structure
     Map<String, Object> payload = [
         'type': 'message',
         'attachments': [
@@ -58,44 +76,40 @@ void call(String status, String jobName, int buildNumber, String buildUrl, Strin
                             'title': 'View Build',
                             'url': buildUrl
                         ]
-                    ],
-                    'msteams': [
-                        'width': 'Full'
                     ]
                 ]
             ]
+        ],
+        'msteams': [
+            'entities': mentionEntities,
+            'width': 'Full'
         ]
     ]
 
-    // If tagging is enabled, add mention entities to the payload
-    if (enableTagging) {
-        def mentionEntities = createMentionEntities(['sreehass@amd.com', 'nikamuni@amd.com'])
-        payload['attachments'][0]['content']['msteams']['entities'] = mentionEntities
-    }
-
+    // Convert payload to JSON
     String payloadJson = JsonOutput.toJson(payload)
 
-    // Debugging: Print the payload
+    // Log the payload for debugging purposes
     echo "Payload: ${payloadJson}"
 
-    // Send the notification to the Teams webhook
+    // Send the notification using httpRequest
     httpRequest httpMode: 'POST',
                 contentType: 'APPLICATION_JSON',
                 requestBody: payloadJson,
                 url: finalWebhookUrl
 }
 
-// Function to create mention entities dynamically
-List<Map> createMentionEntities(List<String> emails) {
-    List<Map> entities = []
-    emails.each { email ->
-        def displayName = email.split('@')[0] // Extract display name from email
+// Function to create mention entities for the provided user IDs
+List<Map<String, Object>> createMentionEntities(List<String> userIds) {
+    List<Map<String, Object>> entities = []
+    userIds.each { id ->
+        def username = id.split('@')[0]  // Extract username from email
         entities.add([
             'type': 'mention',
-            'text': "<at>${displayName}</at>",
+            'text': "<at>${username}</at>",
             'mentioned': [
-                'id': email,
-                'name': displayName
+                'id': id,
+                'name': username
             ]
         ])
     }
