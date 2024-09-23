@@ -6,10 +6,10 @@ void call(String status, String jobName, int buildNumber, String buildUrl, Strin
 
     // If no mentions provided, get default mentions and tag
     if (!mentions) {
-        mentions = defaultUserMentions()
+        mentions = userMentions()
     }
     
-    String tag = defaultMentionTag(mentions)
+    String tag = mentionTag(mentions)
 
     String finalWebhookUrl = webhookUrl ?: teamsWebhookUrl()
     String icon = teamsIcon(status)
