@@ -1,6 +1,8 @@
 List<Map<String, String>> call() {
-    List<String> usernames = ['nikamuni']  // You can add more usernames here if needed
-    return usernames.collect { username ->
+    // Run the Python script to get the usernames
+    def userNames = sh(script: "python3 gheAutomation/resources/user_names.py", returnStdout: true).trim().split('\n')
+
+    return userNames.collect { username ->
         [
             email: "${username}@amd.com",
             displayName: username
